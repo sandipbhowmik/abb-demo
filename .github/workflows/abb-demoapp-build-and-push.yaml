@@ -1,0 +1,120 @@
+# ──────────────────────────────────────────────────────────────────────────────
+# Builds the Spring Petclinic microservices from /src and pushes images to Azure Container Registry (ACR)
+# Supports multi-platform images: linux/amd64 and linux/arm64
+# ──────────────────────────────────────────────────────────────────────────────
+name: build-and-push
+
+on:
+  push:
+    branches: [ main, master ]
+    tags: [ "v*" ]
+  workflow_dispatch:
+
+env:
+  JAVA_VERSION: '17'
+  MVN_ARGS: '-B -ntp -DskipTests'
+  DOCKERFILE: src/docker/Dockerfile
+  DOCKERIZE_VERSION: v0.6.1
+  REGISTRY_LOGIN_SERVER: abbdemoazdevacr.azurecr.io
+  IMAGE_NAMESPACE: demo-petclinic-app
+  PLATFORMS: linux/amd64,linux/arm64
+
+jobs:
+  build:
+    runs-on: self-hosted
+    permissions:
+      contents: read
+      packages: write
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - name: config-server
+            module: spring-petclinic-config-server
+            port: 8888
+          - name: api-gateway
+            module: spring-petclinic-api-gateway
+            port: 8080
+          - name: customers-service
+            module: spring-petclinic-customers-service
+            port: 8080
+          - name: vets-service
+            module: spring-petclinic-vets-service
+            port: 8080
+          - name: visits-service
+            module: spring-petclinic-visits-service
+            port: 8080
+          - name: chat-agent
+            module: spring-petclinic-chat-agent
+            port: 8080
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Set up Temurin ${{ env.JAVA_VERSION }}
+        uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: ${{ env.JAVA_VERSION }}
+          cache: maven
+
+      - name: Set up QEMU for multi-arch
+        uses: docker/setup-qemu-action@v3
+
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v3
+
+      - name: Build jars (multi-module)
+        run: |
+          mvn -f src/pom.xml $MVN_ARGS -pl \
+            spring-petclinic-config-server,\
+            spring-petclinic-api-gateway,\
+            spring-petclinic-customers-service,\
+            spring-petclinic-vets-service,\
+            spring-petclinic-visits-service,\
+            spring-petclinic-chat-agent \
+            -am package
+
+      - name: Validate required env
+        run: |
+          if [ -z "${{ env.REGISTRY_LOGIN_SERVER }}" ]; then
+            echo "REGISTRY_LOGIN_SERVER is required (e.g., myregistry.azurecr.io)." >&2
+            exit 1
+          fi
+
+      - name: Log in to Azure Container Registry (ACR)
+        uses: docker/login-action@v3
+        with:
+          registry: ${{ env.REGISTRY_LOGIN_SERVER }}
+          username: ${{ secrets.REGISTRY_USERNAME }}
+          password: ${{ secrets.REGISTRY_PASSWORD }}
+
+      - name: Prepare image context (copy jar to app.jar)
+        run: |
+          MOD=${{ matrix.module }}
+          TARGET="src/$MOD/target"
+          JAR=$(ls "$TARGET"/*.jar | head -n1)
+          cp -f "$JAR" "$TARGET/app.jar"
+
+      - name: Set image registry/repo
+        id: img
+        run: |
+          echo "reg=${{ env.REGISTRY_LOGIN_SERVER }}" >> $GITHUB_OUTPUT
+          echo "ns=${IMAGE_NAMESPACE}" >> $GITHUB_OUTPUT
+
+
+      - name: Build and push multi-platform image
+        uses: docker/build-push-action@v6
+        with:
+          context: src/${{ matrix.module }}/target
+          file: ${{ env.DOCKERFILE }}
+          push: true
+          platforms: ${{ env.PLATFORMS }}
+          tags: |
+            ${{ steps.img.outputs.reg }}/${{ steps.img.outputs.ns }}/${{ matrix.name }}:sha-${{ github.sha }}
+            ${{ steps.img.outputs.reg }}/${{ steps.img.outputs.ns }}/${{ matrix.name }}:latest
+          build-args: |
+            ARTIFACT_NAME=app
+            EXPOSED_PORT=${{ matrix.port }}
+            DOCKERIZE_VERSION=${{ env.DOCKERIZE_VERSION }}
