@@ -72,9 +72,11 @@ jobs:
           mvn -f src/${{ matrix.module }}/pom.xml $MVN_ARGS package
 
       - name: Prepare image context (copy jar to app.jar)
+        shell: bash
         run: |
-          MOD=${{ matrix.module }}
-          TARGET="src/$MOD/target"
+          set -e
+          TARGET="src/${{ matrix.module }}/target"
+          ls -l "$TARGET"
           JAR=$(ls "$TARGET"/*.jar | head -n1)
           cp -f "$JAR" "$TARGET/app.jar"
 
