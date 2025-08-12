@@ -45,7 +45,7 @@ ingress:
       paths:
         - path: /
           pathType: Prefix
-  tls: []
+  #tls: []
   # - secretName: demo-myapp-tls
   #   hosts:
   #     - demo-myapp.example.com
