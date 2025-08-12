@@ -67,7 +67,7 @@ jobs:
 
       - name: Build jars (multi-module)
         run: |
-          mvn -f src/pom.xml $MVN_ARGS -pl \
+          mvn -f src/${{ matrix.module }}/pom.xml $MVN_ARGS package
             spring-petclinic-config-server,\
             spring-petclinic-api-gateway,\
             spring-petclinic-customers-service,\
@@ -75,6 +75,13 @@ jobs:
             spring-petclinic-visits-service,\
             spring-petclinic-chat-agent \
             -am package
+
+      - name: Prepare image context (copy jar to app.jar)
+        run: |
+          MOD=${{ matrix.module }}
+          TARGET="src/$MOD/target"
+          JAR=$(ls "$TARGET"/*.jar | head -n1)
+          cp -f "$JAR" "$TARGET/app.jar"
 
       - name: Validate required env
         run: |
@@ -89,13 +96,6 @@ jobs:
           registry: ${{ env.REGISTRY_LOGIN_SERVER }}
           username: ${{ secrets.REGISTRY_USERNAME }}
           password: ${{ secrets.REGISTRY_PASSWORD }}
-
-      - name: Prepare image context (copy jar to app.jar)
-        run: |
-          MOD=${{ matrix.module }}
-          TARGET="src/$MOD/target"
-          JAR=$(ls "$TARGET"/*.jar | head -n1)
-          cp -f "$JAR" "$TARGET/app.jar"
 
       - name: Set image registry/repo
         id: img
