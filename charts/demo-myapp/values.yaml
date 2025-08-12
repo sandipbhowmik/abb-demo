@@ -14,7 +14,7 @@ fullnameOverride: ""
 replicaCount: 2
 
 service:
-  type: LoadBalancer
+  type: ClusterIP
   port: 80
   targetPort: 8080
 
@@ -38,9 +38,8 @@ tolerations: []
 affinity: {}
 
 ingress:
-  enabled: false
-  className: ""
-  annotations: {}
+  enabled: true
+  className: nginx
   hosts:
     - host: demo-myapp.example.com
       paths:
@@ -52,7 +51,7 @@ ingress:
   #     - demo-myapp.example.com
 
 autoscaling:
-  enabled: false
+  enabled: true
   minReplicas: 2
   maxReplicas: 5
   targetCPUUtilizationPercentage: 70
