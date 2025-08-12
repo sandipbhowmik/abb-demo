@@ -2,7 +2,7 @@
 # Builds the Spring Petclinic microservices from /src and pushes images to Azure Container Registry (ACR)
 # Supports multi-platform images: linux/amd64 and linux/arm64
 # ──────────────────────────────────────────────────────────────────────────────
-name: build-and-push
+name: abb-demo-app-ci
 
 on:
   push:
