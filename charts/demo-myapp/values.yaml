@@ -2,7 +2,7 @@
 image:
   repository: abbdemoazdevacr.azurecr.io/demo-myapp
   tag: "latest"
-  pullPolicy: IfNotPresent
+  pullPolicy: Always
 
 # If your AKS has ACR Pull (recommended), leave this empty.
 # If you need a docker-registry secret, set: imagePullSecrets: [{ name: "acr-pull" }]
