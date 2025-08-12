@@ -17,9 +17,9 @@ permissions:
   id-token: write   # required for OIDC → Azure
 
 env:
-  ACR_NAME: abbdemoazdevacr              # <-- change to your ACR name
+  ACR_NAME: abbdemoazdevacr
   ACR_LOGIN_SERVER: abbdemoazdevacr.azurecr.io
-  IMAGE_NAME: demo-myapp                     # <-- change to your image name
+  IMAGE_NAME: demo-myapp
 
 jobs:
   build-and-push:
