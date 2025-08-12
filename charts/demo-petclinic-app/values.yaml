@@ -1,8 +1,8 @@
-namespace: petclinic-app
+namespace: demo-petclinic-app
 
 image:
   registry: "abbdemoazdevacr.azurecr.io"   # e.g., myregistry.azurecr.io (ACR only)
-  namespace: petclinic-app
+  namespace: demo-petclinic-app
   tag: "latest"
   pullPolicy: Always
 
