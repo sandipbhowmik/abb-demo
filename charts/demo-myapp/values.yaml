@@ -14,7 +14,7 @@ fullnameOverride: ""
 replicaCount: 2
 
 service:
-  type: LoadBalancer
+  type: ClusterIP
   port: 80
   targetPort: 8080
 
@@ -38,7 +38,7 @@ tolerations: []
 affinity: {}
 
 ingress:
-  enabled: false
+  enabled: true
   className: nginx
   hosts:
     - host: demo-myapp.example.com
