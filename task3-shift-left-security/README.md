@@ -18,7 +18,7 @@ GitHub Advanced Security for secret scanning and code security analysis capabili
 
 ## 1) High‑Level Architecture
 
-
+![HLD Shift Left Security](shift-left-security.png "CI/CD Security ")
 
 **Key points**
 - Triggers on `pull_request` and `push` (to default branches).
