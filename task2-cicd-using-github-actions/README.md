@@ -130,7 +130,7 @@ This section describes the **checks are in place** and **how they ensure securit
 
 **In place**
 - **OIDC to Azure** → eliminates PATs/registry passwords in CI.
-- **No hard-coded secrets** in the pipeline (should be enforced by review).
+- **No hard-coded secrets** in the pipeline.
 
 1. **GitHub Secret Scanning & Push Protection** (repo settings)  
    - Detects committed credentials (tokens, keys) and **blocks pushes** with known token formats.
