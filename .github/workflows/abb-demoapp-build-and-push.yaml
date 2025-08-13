@@ -7,7 +7,7 @@ on:
   push:
     branches: [ main, master ]
     paths:
-      - ".github/workflows/ci-pipeline.yml"
+      - ".github/workflows/abb-demoapp-build-and-push.yaml"
     tags: [ "v*" ]
   workflow_dispatch:
 
