@@ -1,6 +1,6 @@
 # Deploying PetClinic to AKS with Helm
 This README explains how to deploy the application to **Azure Kubernetes Service (AKS)** using a **Helm chart** that includes:
-- **Scaling**: resources, Horizontal Pod Autoscaler (HPA), PodDisruptionBudget (PDB), optional Vertical Pod Autoscaler (VPA).
+- **Scaling**: resources, Horizontal Pod Autoscaler (HPA), PodDisruptionBudget (PDB).
 - **Secret management**: **Azure Key Vault** via **Secrets Store CSI Driver** + **Azure Workload Identity**.
 
 > Each service (e.g., `api-gateway`, `customers-service`) as a separate Helm _release_ with its own values file.
@@ -13,14 +13,14 @@ This README explains how to deploy the application to **Azure Kubernetes Service
   - Access configured on your machine: `az aks get-credentials -g <put resource group name> -n <aks cluster name>`
   - **Metrics Server** installed (required for HPA).
   - **AcrPull** permission from AKS to your ACR (image pulls).
-- If using **Azure Key Vault** mode:
+- Using **Azure Key Vault** mode with:
   - **OIDC/Workload Identity** enabled on AKS.
   - **Secrets Store CSI Driver** and **Azure Key Vault provider** installed cluster-wide.
   - A **User-Assigned Managed Identity (UAMI)** with **Key Vault Secrets User** on the target vault.
   - A Federated Identity Credential that binds `system:serviceaccount:apps:petclinic-sa` to the UAMI.
 - Helm 3.12+ and kubectl 1.27+ on your workstation.
 
-Create namespace:
+Namespace creation for the deployment:
 ```bash
 kubectl create namespace apps --dry-run=client -o yaml | kubectl apply -f -
 ```
