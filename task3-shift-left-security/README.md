@@ -1,18 +1,18 @@
-# Secrets & Code Security in GitHub Actions — Detailed Design (No GHAS Edition)
+# Secrets Scannning & Code Security
 
-> **Scope:** This README documents how the repository’s CI runs **secret scanning** and **code security analysis** _before_ any container build/push. It is designed for **private repos without GitHub Advanced Security (GHAS)** and uses open‑source scanners and CI gates to block risky changes.
+> **Scope:** This README documents how the CI workflow runs **secret scanning** and **code security analysis** _before_ any container build/push. It is designed for **private repos without GitHub Advanced Security (GHAS)** and uses open‑source scanners and CI gates to block risky changes.
 
 ---
 
-## 0) Product & Licensing Notice (as requested)
+## 0) GitHub Advanced Security
 
-Some capabilities **require purchase** of GitHub’s Advanced Security products:
+GitHub Advanced Security for secret scanning and code security analysis capabilities **require purchase** of GitHub’s Advanced Security products:
 
 - **GitHub Secret Protection** — features to help detect and prevent secret leaks, such as **secret scanning** and **push protection**.
 - **GitHub Code Security** — features to help find and fix vulnerabilities, like **code scanning**, **premium Dependabot features**, and **dependency review**.
 - GitHub makes **extra security features** available to customers who purchase GitHub Code Security or GitHub Secret Protection. **GitHub Code Security** and **GitHub Secret Protection** are available for accounts on **GitHub Team** and **GitHub Enterprise Cloud**.
 
-> **Hence**, this CI pipeline is designed to operate **without GitHub’s Advanced Security products** (No‑GHAS). We implement equivalent coverage using open‑source tools and strict branch protections.
+> **Hence**, considering the above point, this CI pipeline is designed to operate **without GitHub’s Advanced Security products**. The equivalent coverage can be implemented using open‑source tools and branch protections.
 
 ---
 
