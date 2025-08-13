@@ -1,6 +1,6 @@
 # Secrets Scanning & Code Security
 
-> **Scope:** This README documents how the CI workflow runs **secret scanning** and **code security analysis** _before_ any container build/push. It is designed for **private repos without GitHub Advanced Security (GHAS)** and uses open‑source scanners and CI gates to block risky changes.
+> **Scope:** This README documents how the **secret scanning** and **code security analysis** implemented in the CI/Build action workflow. It is designed for **private repos without GitHub Advanced Security (GHAS)** and uses open‑source scanners and gates to block risky changes.
 
 ---
 
@@ -21,9 +21,8 @@ GitHub Advanced Security for secret scanning and code security analysis capabili
 ![HLD Shift Left Security](shift-left-security.png "CI/CD Security ")
 
 **Key points**
-- Triggers on `pull_request` and `push` (to default branches).
+- Triggers on `pull_request`,`push`.
 - **Self‑hosted** runner executes all scans.
-- **Required status checks** gate merges (no GHAS required).
 
 ---
 
@@ -34,21 +33,15 @@ GitHub Advanced Security for secret scanning and code security analysis capabili
 
 2) **Secret scanning (CI)**  
    - **Gitleaks**: scans repository (and optionally history) for secrets, fails on any finding.  
-   - **TruffleHog** (optional): additional patterns for robustness.
 
 3) **Static App Security Testing (SAST)**  
-   - **Semgrep** (OSS rules for Java): fast source analysis; annotates PRs and fails on high‑severity findings.  
-   - **SpotBugs** (optional, via Maven) can be added for Java bytecode analysis.
+   - **Semgrep** (OSS rules for Java): fast source analysis; annotates PRs and fails on high‑severity findings.
 
 4) **Software Composition Analysis (SCA)**  
-   - **OWASP Dependency‑Check**: flags vulnerable dependencies using NVD/OSS Index; **fails** if CVSS ≥ 7.0.  
-   - (Optional) **OSV Scanner** for additional coverage.
+   - **OWASP Dependency‑Check**: flags vulnerable dependencies using NVD/OSS Index; **fails** if CVSS ≥ 7.0.
 
 5) **Dockerfile hygiene (pre‑build)**  
    - **Hadolint** to catch insecure Dockerfile practices before images are built.
-
-6) **Repository vulnerability scan (optional)**  
-   - **Trivy fs** mode scans the working tree for known CVEs in vendored binaries & SBOM content.
 
 7) **Reporting & Gates**  
    - Save reports as **Actions artifacts** (JSON/HTML/XML).  
