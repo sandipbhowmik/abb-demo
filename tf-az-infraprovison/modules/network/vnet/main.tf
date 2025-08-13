@@ -38,7 +38,6 @@ resource "azurerm_subnet" "aks" {
 #  }
 }
 
-# modules/network/vnet/main.tf
 resource "azurerm_subnet" "mysql" {
   name                 = "snet-mysql"
   resource_group_name  = var.rg_name

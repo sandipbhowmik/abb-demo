@@ -1,16 +1,10 @@
-#terraform {
-#  backend "local" {}
-#}
-
-
-
 resource "azurerm_resource_group" "rg" {
   name     = var.rg_name
   location = var.location
   tags     = var.tags
 }
 
-# ---- Shared resources ----
+# Shared resources
 module "log_analytics" {
   source      = "./modules/shared/logAnalytics"
   location    = var.location
@@ -47,7 +41,7 @@ module "keyvault" {
   tf_operator_object_id = data.azurerm_client_config.current.object_id
 }
 
-# ---- Networking ----
+# Networking
 module "vnet" {
   source            = "./modules/network/vnet"
   location          = var.location
@@ -70,7 +64,7 @@ module "mysql_dns_zone" {
   tags        = var.tags
 }
 
-# ---- AKS (ACA replacement) ----
+# AKS
 module "aks" {
   source                     = "./modules/containerapps/_replaced-with-aks"
   location                   = var.location
@@ -89,7 +83,7 @@ resource "azurerm_role_assignment" "kubelet_acr_pull" {
   principal_id         = module.aks.kubelet_object_id
 }
 
-# ---- MySQL with auto-generated credentials ----
+# MySQL with auto-generated credentials
 resource "random_password" "mysql_admin" {
   length  = 10
   special = true
@@ -119,7 +113,7 @@ module "mysql" {
   tags                   = var.tags
 }
 
-# ---- Workload Identity for Key Vault CSI (AKS pods) ----
+# Workload Identity for Key Vault CSI
 module "workload_identity" {
   source              = "./modules/aks/workload-identity"
   name_prefix         = var.name_prefix
@@ -135,13 +129,10 @@ output "workload_identity_client_id" {
   value = module.workload_identity.uami_client_id
 }
 
-
-# ---- Azure OpenAI (scaffold; disabled by default) ----
-
-# ---- Azure OpenAI (with deployment + RBAC for AKS UAMI) ----
+# Azure OpenAI (with deployment + RBAC for AKS UAMI)
 #module "ai_openai" {
 #  source      = "./modules/ai/openai"
-#  enable      = true # flip to true to provision
+#  enable      = true
 #  location    = var.location
 # rg_name     = azurerm_resource_group.rg.name
 #  name_prefix = var.name_prefix

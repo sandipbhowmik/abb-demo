@@ -58,16 +58,7 @@ resource "azapi_resource" "deployment" {
   }
 }
 
-# Optional RBAC grant to a principal (e.g., AKS UAMI principal_id)
-#resource "azurerm_role_assignment" "openai_user" {
-#  count                = var.enable && var.assign_role_to_principal_id != null ? 1 : 0
-#  scope                = azapi_resource.account[0].id
-#  role_definition_name = "Cognitive Services OpenAI User"
-#  principal_id         = var.assign_role_to_principal_id
-#}
-
-# Create 0 or 1 instances purely based on input vars
-# create one role assignment when enabled; key is static so plan can proceed
+# RBAC grant to a principal
 resource "azurerm_role_assignment" "openai_user" {
   for_each                         = var.enable ? { "p1" = var.assign_role_to_principal_id } : {}
   scope                            = one(azapi_resource.account[*].id)

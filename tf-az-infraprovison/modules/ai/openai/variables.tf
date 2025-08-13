@@ -1,4 +1,3 @@
-# was: variable "enable" { type = bool default = false }
 variable "enable" {
   type    = bool
   default = false
@@ -12,7 +11,6 @@ variable "tags" {
   default = {}
 }
 
-# Deployment controls
 variable "create_deployment" {
   type    = bool
   default = true
@@ -24,7 +22,7 @@ variable "deployment_name" {
 variable "model_format" {
   type    = string
   default = "OpenAI"
-} # OpenAI / OSS
+} 
 variable "model_name" {
   type    = string
   default = "gpt-4o-mini"
@@ -34,7 +32,6 @@ variable "model_version" {
   default = "latest"
 }
 
-# Throughput
 variable "sku_name" {
   type    = string
   default = "S0"
@@ -44,7 +41,6 @@ variable "capacity" {
   default = 20
 }
 
-# Optional principal to grant access (e.g., AKS UAMI principal_id)
 variable "assign_role_to_principal_id" {
   type    = string
   default = null

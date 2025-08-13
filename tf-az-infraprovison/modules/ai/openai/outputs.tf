@@ -1,5 +1,3 @@
-#output "account_id" { value = try(azapi_resource.account.id, null) }
-#output "account_name" { value = try(azapi_resource.account.name, null) }
 output "account_id" {
   value = try(one(azapi_resource.account[*].id), null)
 }

@@ -12,7 +12,7 @@ resource "azurerm_kubernetes_cluster" "aks" {
     type                         = "VirtualMachineScaleSets"
     auto_scaling_enabled         = true
     min_count                    = 1
-    max_count                    = 2                 # 2 x 2 vCPU = 4 vCPU max
+    max_count                    = 2                
     upgrade_settings {
       max_surge = "1"                       # avoid consuming extra surge capacity
     }
@@ -23,14 +23,6 @@ resource "azurerm_kubernetes_cluster" "aks" {
 
   role_based_access_control_enabled = true
   
-# azure_active_directory_role_based_access_control {
-#    manageg                = true                 # was false
-#    tenant_id              = var.tenant_id
-#    admin_group_object_ids = var.aad_admin_group_object_ids  # list of object IDs
-#    azure_rbac_enabled     = true                 # optional, enables Entra RBAC for K8s
-#  }
-#}
-
   azure_active_directory_role_based_access_control {
     #managed                = true
     admin_group_object_ids = var.aad_admin_group_object_ids

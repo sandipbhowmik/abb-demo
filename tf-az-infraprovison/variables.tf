@@ -15,7 +15,6 @@ variable "aad_admin_group_object_ids" {
   default = []
 }
 
-# MySQL admin **login**; password will be auto-generated
 variable "mysql_administrator_login" {
   type        = string
   description = "MySQL admin login"
