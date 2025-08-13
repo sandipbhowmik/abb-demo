@@ -6,7 +6,7 @@
 
 ---
 
-## 1) Executive Overview
+## 1) Overview
 
 The PetClinic application is deployed on **Azure Kubernetes Service (AKS)** and integrates with **Azure Container Registry (ACR)** for images, **Azure Key Vault (KV)** for secrets (via **CSI driver + workload identity**), **Azure Monitor (Log Analytics + Application Insights)** for observability, and **Azure Database for MySQL – Flexible Server** for persistence. Network isolation is achieved using a dedicated **VNet** with separate subnets for AKS, apps, and database. Identity is managed through **Azure AD** with **OIDC-based Workload Identity** and least-privilege RBAC on ACR and Key Vault.
 
@@ -132,7 +132,7 @@ sequenceDiagram
 |19 | RBAC: KV Secrets User | `azurerm_role_assignment` | (UAMI → KV) | Secrets read via CSI | `modules/aks/workload-identity` |
 |20 | (Optional) Azure OpenAI | `azurerm_cognitive_account` + deployment | `${name_prefix}-aoai` | Disabled by default; add model deployments as needed | `modules/ai/openai` |
 
-> If your actual variable names differ, search/replace `${name_prefix}` accordingly.
+> If actual variable names differ, search/replace `${name_prefix}` accordingly.
 
 ---
 
@@ -263,34 +263,55 @@ sequenceDiagram
 
 ---
 
-## 13) How to Use This Repo (Quick Start)
+## 13) How to use and run the Terraform codebase
 
 1. **Prereqs**
    - Azure subscription + Owner or equivalent to create RG/role assignments.
    - Terraform ≥ the version pinned in `versions.tf`.
    - Remote state backend configured as in `backend.tf` (Storage Account, Container, Key).
 
-2. **Initialize**
+2. **Initialize Bootstrap Resources**
    ```bash
+   cd backend/bootstrap
    terraform init
-   terraform validate
+   terraform apply -auto-approve \
+   -var location="<put azure region>" \
+   -var rg_name="<put az resource group name >" \
+   -var sa_name="<put az storage account name>" \
+   -var container_name="<put sa blob container name >" \
+   -var subscription_id="$(az account show --query id -o tsv)" \
+   -var tenant_id="$(az account show --query tenantId -o tsv)"
    ```
 
-3. **Plan & Apply**
+3. **Initialize Remote Backend, Plan and Apply**
    ```bash
-   terraform plan -var="name_prefix=<yourprefix>" -var="location=<azure-region>" -out tfplan
-   terraform apply "tfplan"
+   cd tf-az-infraprovison
+   terraform fmt -recursive
+   terraform init
+   terraform validate
+   terraform plan \
+   -var location="<put azure region>" \
+   -var rg_name="<put az resource group name >" \
+   -var name_prefix="<put az resources name prefix>" \
+   -var 'aad_admin_group_object_ids=["<put aad admin group object id>"]' \
+   -var subscription_id="$(az account show --query id -o tsv)" \
+   -var tenant_id="$(az account show --query tenantId -o tsv)" \
+   -var tf_operator_object_id="$(az ad signed-in-user show --query id -o tsv)" \
+   -out tfplan 
+   terraform apply -auto-approve "tfplan"
    ```
 
 4. **Kubeconfig & Access**
    ```bash
-   az aks get-credentials -g <rg> -n ${name_prefix}-aks --overwrite-existing
-   kubectl auth can-i get pods --as <your UPN or AAD group member>
+   az aks get-credentials -g <put az resource group name> -n ${name_prefix}-aks --overwrite-existing
+   kubectl get pods ; 
    ```
 
-5. **Deploy Apps (example)**
+5. **Build & Deploy Petclinic App on AKS**
+   - Build the Petclinic App using Github Actions
    - Push images to ACR.
-   - Use Helm/Argo CD manifests targeting namespace **`apps`**, service account **`petclinic-sa`**.
+   - Use Helm/Argo CD to deploy the manifests targeting namespace.
+- **Note** — Detailed design along with the exact steps for CI/CD and GitOps using Github Action, Helm, ArgoCD provided in the mentioned task directory.
 
 > **Post-deploy hardening:** Add Private Endpoints for KV/ACR, configure WAF ingress, and finalize NSG/Azure Firewall rules.
 
