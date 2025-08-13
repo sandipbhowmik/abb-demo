@@ -56,8 +56,8 @@ Expose the Argo CD API/UI (choose one):
 
 > Scope the PAT to **read-only** repository access with below permissions:
 
-**Content:** Repository contents, commits, branches, downloads, releases, and merges (aceess to be enabled)
-**Metadata:** Search repositories, list collaborators, and access repository metadata. (enabled by default)
+- **Content:** Repository contents, commits, branches, downloads, releases, and merges (aceess to be enabled)
+- **Metadata:** Search repositories, list collaborators, and access repository metadata. (enabled by default)
 
 ---
 
