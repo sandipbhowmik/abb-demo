@@ -1,28 +1,13 @@
 # Build/Test/Push Pipeline to Azure Container Registry (ACR) — Detailed Design
 
-> **Scope:** This README documents the GitHub Actions workflow `abb-demoapp-build-and-push.yaml` that builds, (optionally) tests, and pushes container images for the PetClinic microservices to **Azure Container Registry (ACR)**. It covers triggers, jobs, matrix strategy, OIDC authentication to Azure, image tagging, and **security controls** including **secret scanning** and **security scanning** (SAST/SCA/container).  
-> **Note:** Sections labeled **Recommendations** describe optional hardening steps that may extend the provided workflow (clearly marked).
+> **Scope:** This README documents the GitHub Actions workflow `abb-demoapp-build-and-push.yaml` that builds, tests, and pushes container images for the PetClinic microservices to **Azure Container Registry (ACR)**. It covers triggers, jobs, matrix strategy, OIDC authentication to Azure, image tagging, and **security controls** including **secret scanning** and **security scanning** (SAST/SCA/container).  
+> **Note:** This workflow considering as CI or Continuous Integration. Continuous Deployment flow should be seperated from CI pipeline. Hence, this pipeline only works as CI. 
 
 ---
 
-## 1) High-Level Flow
+## 1) Github Actions High Level Flow
 
-```mermaid
-flowchart LR
-  Dev[Developer Push/Tag / Manual Dispatch] --> GH[GitHub Actions Workflow]
-  GH --> Runner[Self-Hosted Runner]
-  subgraph Build Fan-out (Matrix)
-    Checkout[Checkout] --> Java[Setup Java 17]
-    Java --> QEMU[Setup QEMU]
-    QEMU --> Buildx[Setup Docker Buildx]
-    Buildx --> Maven[Maven Package per Module]
-    Maven --> Jar[Prepare app.jar in target/]
-    Jar --> AzureLogin[azure/login@v2 (OIDC)]
-    AzureLogin --> ACRLogin[az acr login]
-    ACRLogin --> BuildPush[docker/build-push-action (multi-arch)]
-    BuildPush --> ACR[(ACR: abbdemoazdevacr.azurecr.io)]
-  end
-```
+![Solution architecture](github-actions-workflow-diagram.png "Github Actions High Level Flow")
 
 **Key properties**
 - **Runner:** `self-hosted` (requires Docker + Buildx, QEMU, Java 17, Maven, Azure CLI).
@@ -42,7 +27,8 @@ flowchart LR
 ## 2) Triggers, Permissions & Environments
 
 ### Triggers
-- `push` to `main` or `master` (the sample includes a **paths** filter on the workflow file; see recommendation below)
+- `push` to `main` or `master`
+-  includes a **paths** filter on the workflow file
 - `tags: v*`
 - `workflow_dispatch` (manual)
 
@@ -50,8 +36,8 @@ flowchart LR
 - `contents: read`  
 - `id-token: write` (required for **OIDC** to Azure)
 
-### Recommendation — Widen trigger paths
-If you want builds when app code changes, include `src/**`, `pom.xml`, etc. Example:
+### Widen trigger paths
+Builds when app code changes, include `src/**`, `pom.xml`, etc.:
 ```yaml
 on:
   push:
@@ -119,7 +105,7 @@ on:
   - `DOCKERIZE_VERSION=${{ env.DOCKERIZE_VERSION }}`
 
 ### Tests
-- The sample uses `-DskipTests`. **Recommendation:** Add a **test stage** and fail fast on test failures:
+- Uses `-DskipTests` and fail fast on test failures:
 ```yaml
 - name: Run unit tests
   run: mvn -B -ntp -DskipITs test
@@ -147,15 +133,14 @@ on:
 
 ## 7) Security & Compliance
 
-This section describes **what checks are in place** and **how they ensure security**, split into: **secret scanning**, **code/dependency scanning (SAST/SCA)**, **container image scanning**, **signing & provenance**, and **policy enforcement**.
+This section describes the **checks are in place** and **how they ensure security**, split into: **secret scanning**, **code/dependency scanning (SAST/SCA)**, **container image scanning**, **signing**.
 
 ### 7.1 Secret Management & Secret Scanning
 
-**In place (via design)**
+**In place**
 - **OIDC to Azure** → eliminates PATs/registry passwords in CI.
 - **No hard-coded secrets** in the pipeline (should be enforced by review).
 
-**Recommendations** (add as steps and/or repo settings):
 1. **GitHub Secret Scanning & Push Protection** (repo settings)  
    - Detects committed credentials (tokens, keys) and **blocks pushes** with known token formats.
 2. **Gitleaks** (action) — blocks generic secrets patterns:
@@ -194,7 +179,7 @@ This section describes **what checks are in place** and **how they ensure securi
    - Or **Gradle** alternatives if applicable.
 
 **Gating**
-- Configure **required status checks** on `main` so PRs cannot merge unless CodeQL & SCA pass.
+- Configuration **required status checks** on `main` so PRs cannot merge unless CodeQL & SCA pass.
 
 ### 7.3 Container Image Security
 
@@ -216,20 +201,12 @@ This section describes **what checks are in place** and **how they ensure securi
     exit-code: '1'
     severity: 'HIGH,CRITICAL'
 ```
-3. **SBOM** (Syft) — generate and attach SBOM (for audit & provenance):
-```yaml
-- name: Generate SBOM (syft)
-  uses: anchore/sbom-action@v0
-  with:
-    image: ${{ steps.img.outputs.reg }}/${{ steps.img.outputs.ns }}/${{ matrix.name }}:sha-${{ github.sha }}
-    artifact-name: "sbom-${{ matrix.name }}-${{ github.sha }}.spdx.json"
-```
 
 **Why this helps**
 - Prevents shipping images with **HIGH/CRITICAL CVEs**.
 - SBOM enables **traceability**, license review, and downstream risk management.
 
-### 7.4 Signing & Provenance (Supply Chain)
+### 7.4 Signing
 
 **Recommendation**
 - **Cosign keyless signing** using GitHub OIDC; store signatures alongside images in ACR.
@@ -243,24 +220,16 @@ This section describes **what checks are in place** and **how they ensure securi
   run: |
     cosign sign --yes ${{ steps.img.outputs.reg }}/${{ steps.img.outputs.ns }}/${{ matrix.name }}:sha-${{ github.sha }}
 ```
-- (Optional) **SLSA provenance**: attach build attestations.
 
 **Why this helps**
 - Consumers (e.g., AKS admission controllers) can verify images were produced by **your** pipeline and **untampered**.
-
-### 7.5 Enforcement in Kubernetes/AKS (Runtime)
-
-**Recommendation**
-- Enforce image **signatures** and SBOM policies with **Ratify** + Gatekeeper or Kyverno.
-- Enable **Defender for Containers** for runtime scanning.
-- Use **Azure Policy for Kubernetes** to block unsigned/unscanned images.
 
 ---
 
 ## 8) Quality Gates & Branch Protections
 
-- **Required status checks**: CodeQL, Gitleaks/TruffleHog, Trivy, Unit tests.
-- **Branch protection**: require PRs, linear history, review approvals, and **push protection**.
+- **Required status checks**: CodeQL, Gitleaks, Trivy, Unit tests.
+- **Branch protection**: require PRs, code reviewer approvals, and **branch protection**.
 - **Environment protections** (if using environments): require approvals for “prod” deploys.
 - **Fail-fast policy**: make security steps fail the job on HIGH/CRITICAL findings.
 
@@ -274,23 +243,6 @@ Ensure the self-hosted runner has:
 - Azure CLI
 - Network egress to `*.azurecr.io` and GitHub endpoints
 - Sufficient disk for multi-arch layer caching
-
-**Caching (optional)**
-```yaml
-- uses: actions/cache@v4
-  with:
-    path: ~/.m2/repository
-    key: maven-${{ runner.os }}-${{ hashFiles('**/pom.xml') }}
-```
-
----
-
-## 10) Failure Scenarios & Troubleshooting
-
-- **Image pull denied / 401 to ACR:** verify **AcrPush** on the ACR scope for the federated app; re-run `azure/login` with correct `AZURE_*` IDs.
-- **`latest` tag not updating:** ensure `push: true` and tags include `:latest`.
-- **Multi-arch build fails:** confirm QEMU/Buildx installed on the runner; check base images support both arches.
-- **Scans fail the build:** review findings; for Trivy, consider **ignore policies** for false positives, but prefer patching.
 
 ---
 
