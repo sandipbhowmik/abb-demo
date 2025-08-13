@@ -89,13 +89,11 @@ image:
   tag: "sha-<commit-sha>"   # or "1.0.7"
 ```
 
-> Optional: use **Argo CD Image Updater** to track new tags automatically (policy-driven) and commit updated values back to Git.
-
 ---
 
 ## 6) Automatic Sync from GitHub Changes
 
-Polling (default):** Argo CD periodically polls repos and detects new commits.
+**Polling (default):** Argo CD periodically polls repos and detects new commits.
 
 With **Automated Sync** enabled, Argo CD applies the new manifests as soon as the change is detected.
 
