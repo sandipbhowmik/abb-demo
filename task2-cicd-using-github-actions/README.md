@@ -116,12 +116,7 @@ on:
 ## 6) Container Build & Push (Multi-Arch)
 
 - `docker/setup-qemu-action@v3` + `docker/setup-buildx-action@v3` enable **multi-architecture** builds.
-- `docker/build-push-action@v6` builds for `${PLATFORMS}` and **pushes a manifest list** to ACR.
-
-**Result**
-- ACR repositories:  
-  `abbdemoazdevacr.azurecr.io/demo-petclinic-app/<service>`  
-  with tags `sha-<commit>` and `latest`.
+- `docker/build-push-action@v6` builds for `${PLATFORMS}` and **pushes a manifest list** to ACR with tags `sha-<commit>` and `latest`.
 
 ---
 
@@ -170,7 +165,6 @@ This section describes the **checks are in place** and **how they ensure securit
 ```
 2. **Dependency Audit** (SCA): flag vulnerable libs.
    - **Maven**: `mvn -B -ntp org.owasp:dependency-check-maven:check -DfailBuildOnCVSS=7.0`
-   - Or **Gradle** alternatives if applicable.
 
 **Gating**
 - Configuration **required status checks** on `main` so PRs cannot merge unless CodeQL & SCA pass.
@@ -198,7 +192,6 @@ This section describes the **checks are in place** and **how they ensure securit
 
 **Why this helps**
 - Prevents shipping images with **HIGH/CRITICAL CVEs**.
-- SBOM enables **traceability**, license review, and downstream risk management.
 
 ### 7.4 Signing
 
@@ -240,62 +233,5 @@ Ensure the self-hosted runner has:
 
 ---
 
-## 11) Appendix — Example Security Steps (Drop-in)
-
-> Add after build-push, or scan the local image before pushing, depending on your policy.
-
-```yaml
-# Secret scanning
-- name: Secret scan (gitleaks)
-  uses: gitleaks/gitleaks-action@v2
-  with:
-    args: "--no-banner --redact --verbose --exit-code 1"
-
-# SAST
-- name: Initialize CodeQL
-  uses: github/codeql-action/init@v3
-  with:
-    languages: java
-- name: Perform CodeQL Analysis
-  uses: github/codeql-action/analyze@v3
-
-# SCA
-- name: OWASP Dependency-Check
-  run: mvn -B -ntp org.owasp:dependency-check-maven:check -DfailBuildOnCVSS=7.0
-
-# Container
-- name: Lint Dockerfile (hadolint)
-  uses: hadolint/hadolint-action@v3.1.0
-  with:
-    dockerfile: src/docker/Dockerfile
-
-- name: Trivy scan (image)
-  uses: aquasecurity/trivy-action@0.24.0
-  with:
-    image-ref: ${{ steps.img.outputs.reg }}/${{ steps.img.outputs.ns }}/${{ matrix.name }}:sha-${{ github.sha }}
-    format: 'table'
-    vuln-type: 'os,library'
-    exit-code: '1'
-    severity: 'HIGH,CRITICAL'
-
-# SBOM & Signing
-- name: Generate SBOM (syft)
-  uses: anchore/sbom-action@v0
-  with:
-    image: ${{ steps.img.outputs.reg }}/${{ steps.img.outputs.ns }}/${{ matrix.name }}:sha-${{ github.sha }}
-    artifact-name: "sbom-${{ matrix.name }}-${{ github.sha }}.spdx.json"
-
-- name: Install Cosign
-  uses: sigstore/cosign-installer@v3.6.0
-
-- name: Sign image (keyless)
-  env:
-    COSIGN_EXPERIMENTAL: "true"
-  run: |
-    cosign sign --yes ${{ steps.img.outputs.reg }}/${{ steps.img.outputs.ns }}/${{ matrix.name }}:sha-${{ github.sha }}
-```
-
----
-
-## 12) Change Log
-- **v1.0** — Initial pipeline design doc with security scanning & secret scanning recommendations.
+## 10) Change Log
+- **v1.0** — Initial pipeline design doc with security scanning & secret scanning.
