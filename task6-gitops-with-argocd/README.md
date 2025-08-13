@@ -44,12 +44,23 @@ Get the initial **admin** password (auto-generated secret):
 kubectl -n argocd get secret argocd-initial-admin-secret -o jsonpath="{.data.password}" | base64 -d; echo
 ```
 
-Expose the Argo CD API/UI (choose one):
-- **Port-forward (quickstart):**
+Expose the Argo CD API/UI:
+- **Use a LoadBalancer service:**
   ```bash
-  kubectl -n argocd port-forward svc/argocd-server 8080:443
-  # UI: https://localhost:8080  |  user: admin  |  pass: <from secret above>
+  # Make the service is a LoadBalancer with BOTH 80 and 443 going to 8080
+  kubectl -n argocd expose svc argocd-server --type=LoadBalancer --name=argocd-server-lb --port 80 --target-port 8080
+  kubectl -n argocd patch svc argocd-server \
+  -p '{"spec":{"type":"LoadBalancer","ports":[
+    {"name":"http","port":80,"targetPort":8080},
+    {"name":"https","port":443,"targetPort":8080}
+  ]}}'
   ```
+  ```bash
+  # watch until EXTERNAL-IP shows up
+  kubectl -n argocd get svc argocd-server
+  ```
+- AKS will provision a public IP on the cluster’s Standard Load Balancer and attach it to the service; use that IP to reach the UI.
+  
 ---
 
 ## 4) Connect Argo CD to Your GitHub Repo (PAT)
