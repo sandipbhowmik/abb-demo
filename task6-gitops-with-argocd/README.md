@@ -65,6 +65,17 @@ Expose the Argo CD API/UI:
 
 ## 4) Connect Argo CD to Your GitHub Repo (PAT)
 
+**In Argo CD UI**
+- Log in to Argo CD.
+- Go to Settings → Repositories → CONNECT REPO → HTTPS.
+
+**Fill in:**
+- Repository URL: https://github.com/<owner>/<repo>.git
+- Username: <github username>
+- Password: <put github PAT>
+- (Optional) Name: a friendly name for the repo
+- Click Connect. You should see the repo show up with a green/“successful” status.
+
 > Scope the PAT to **read-only** repository access with below permissions:
 
 - **Content:** Repository contents, commits, branches, downloads, releases, and merges (aceess to be enabled)
