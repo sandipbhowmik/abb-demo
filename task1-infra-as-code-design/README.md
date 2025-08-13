@@ -62,49 +62,6 @@ flowchart LR
   KUBELET --> ACR
 ```
 
-### 2.4 Key Sequences
-
-#### a) Image Pull (ACR)
-```mermaid
-sequenceDiagram
-  participant Pod
-  participant Kubelet as AKS Kubelet Identity
-  participant ACR as Azure Container Registry
-  Pod->>Kubelet: Request image pull
-  Kubelet->>ACR: Authenticate (AcrPull)
-  ACR-->>Kubelet: Token OK, image layers
-  Kubelet-->>Pod: Image ready
-```
-
-#### b) Secret Mount (Key Vault CSI + Workload Identity)
-```mermaid
-sequenceDiagram
-  participant Pod as Pod (SA: apps/petclinic-sa)
-  participant OIDC as AKS OIDC Issuer
-  participant FIC as Federated Identity Credential
-  participant UAMI as User Assigned MI
-  participant KV as Azure Key Vault
-  Pod->>OIDC: Present service account token
-  OIDC-->>FIC: Token validation
-  FIC-->>UAMI: Exchange for Azure token
-  UAMI->>KV: Access secret (Role: Secrets User)
-  KV-->>Pod: Secret material via CSI mount
-```
-
-#### c) DB Connection (Private)
-```mermaid
-sequenceDiagram
-  participant Pod
-  participant PDNS as Private DNS Zone
-  participant VNet as VNet Routing
-  participant MySQL as MySQL Flexible Server
-  Pod->>PDNS: Resolve mysql FQDN
-  PDNS-->>Pod: Private IP
-  Pod->>VNet: TCP 3306 to private IP
-  VNet-->>MySQL: Routed to delegated subnet
-  MySQL-->>Pod: Connection established
-```
-
 ---
 
 ## 3) Resource Inventory
