@@ -1,8 +1,8 @@
-# PetClinic on Azure — Detailed Architecture & Design
+# PetClinic on Azure — Infrastructure Architecture & Design
 
-> **Scope:** This README describes the target architecture that is provisioned by the Terraform codebase (`tf-az-infraprovison`). It covers Azure resources, networking, identity & RBAC, security, scalability, and operational considerations. All names are parameterized by `var.name_prefix` unless otherwise stated.
+> **Scope:** This README describes the target architecture that is provisioned by the Terraform codebase (`tf-az-infraprovison`). It covers Azure resources, networking, identity & RBAC, security, scalability etc. All names are parameterized by `var.name_prefix` unless otherwise stated.
 
-> **Note:** The design below reflects the intended state encoded in Terraform.
+> **Note:** The design below reflects the intended state encoded in Terraform.  
 
 ---
 
@@ -13,7 +13,7 @@ The PetClinic application is deployed on **Azure Kubernetes Service (AKS)** and 
 **Key principles**
 - **Security by design:** AAD-backed AKS, local accounts disabled, KV CSI with rotation, private MySQL access through Private DNS, Azure Policy enabled.
 - **Scalability:** AKS node pool autoscaling.
-- **Separation of concerns:** App tier on AKS; data tier on MySQL; platform services (ACR, KV, LA, App Insights) decoupled for lifecycle independence.
+- **Separation of concerns:** App tier on AKS; data tier on MySQL; platform services (ACR, KV, Log Analytics, App Insights) decoupled for lifecycle independence.
 
 ---
 
@@ -52,11 +52,11 @@ flowchart TB
 ```mermaid
 flowchart LR
   OIDC["AKS OIDC Issuer URL"]
-  FIC["Federated Identity Credential\n(subject: system:serviceaccount:apps:petclinic-sa)"]
-  UAMI["User Assigned Managed Identity\n(${name_prefix}-uami)"]
-  KV["Key Vault (${name_prefix}-kv)\nRole: Key Vault Secrets User"]
+  FIC["Federated Identity Credential-(subject: system:serviceaccount:apps:petclinic-sa)"]
+  UAMI["User Assigned Managed Identity-(${name_prefix}-uami)"]
+  KV["Key Vault (${name_prefix}-kv)-Role: Key Vault Secrets User"]
   KUBELET["AKS Kubelet Identity"]
-  ACR["ACR (${name_prefix}acr)\nRole: AcrPull"]
+  ACR["ACR (${name_prefix}acr)-Role: AcrPull"]
 
   OIDC --> FIC --> UAMI --> KV
   KUBELET --> ACR
@@ -144,9 +144,9 @@ sequenceDiagram
 - **Name Resolution**
   - Private access to MySQL via **Private DNS zone** `privatelink.mysql.database.azure.com` linked to the VNet.
 - **Egress**
-  - ACR and Key Vault are public by default in this baseline. See security recommendations for **Private Endpoints** and firewall hardening.
+  - ACR and Key Vault are public by default in this baseline. For Production deployment security recommendation to implement **Private Endpoints** and firewall hardening.
 - **Ingress**
-  - This baseline does not prescribe a specific ingress controller/WAF. If Internet ingress is required, add **NGINX Ingress** or **Application Gateway Ingress Controller (AGIC)** with **WAF** and DNS records.
+  - This baseline does not prescribe a specific ingress controller/WAF. Added **NGINX Ingress** as ingress controller later for internet access. **Application Gateway Ingress Controller (AGIC)** with **WAF**, DNS records can be created as required.
 
 ---
 
@@ -175,29 +175,16 @@ sequenceDiagram
 - **Private MySQL** with VNet integration and Private DNS.
 - **RBAC** enforced for ACR and Key Vault.
 
-### Prod Deployment Recommendations
-1. **Key Vault public network access** is enabled in baseline → **Enable Private Endpoint**, disable public access, and restrict firewall to trusted ranges.
-2. **ACR** is public by default → with **Premium**, enable **Private Endpoint** and disable public access where feasible.
-3. **Ingress hardening** → Use **App Gateway WAF** or NGINX Ingress + WAF in front; terminate TLS with managed certs; restrict source IPs where applicable.
-4. **Node pool separation** → Add **user node pools** (e.g., `workload`, `system`) with taints/tolerations; consider **spot** for non-critical workloads.
-5. **Image security** → Enable **Microsoft Defender for Containers** and CI image scanning (e.g., Trivy/GHAS). Enforce signed images (Notary/Azure Policy).
-6. **DB resilience** → Current SKU is Basic-class. For production, enable **zone redundancy/HA**, increase vCores/storage, and enforce server parameter hardening.
-7. **Network controls** → Tighten **NSG rules**, consider **Azure Firewall** for egress control and FQDN allowlisting (ACR/KV endpoints).
-8. **Secret rotation** → Automate rotation to be scoped (DB creds, app secrets).
-
 ---
 
 ## 7) Scalability & Resilience
 
 - **AKS**
-  - System pool autoscaling **1–2** nodes. Add dedicated **user pools** for application workloads.
-  - Use **Horizontal Pod Autoscaler (HPA)** based on CPU/RAM/requests per second; optionally **VPA** for right-sizing.
+  - System pool autoscaling **1–2** nodes. Added **user pools** for application workloads.
   - For multi-AZ resilience, enable **zone spread** and **PodDisruptionBudgets**.
 - **MySQL Flexible**
   - Scale up vCores/storage online; enable HA and zone redundancy for production SLAs.
-  - Backup retention currently **7 days**; align with RPO/RTO requirements.
-- **Observability pipeline**
-  - Log Analytics & App Insights scale elastically; control cost via sampling, retention, and dedicated clusters as needed.
+  - Backup retention currently **7 days**.
 
 ---
 
@@ -208,43 +195,31 @@ sequenceDiagram
   - **Application telemetry** to **Application Insights** (use SDK/OTel exporters).
 - **Dashboards & Alerts (examples)**
   - AKS health: node readiness, pod restarts, HPA activity.
-  - App health: request rate/latency, dependency failures, error budget burn.
+  - App health: request rate/latency, dependency failures etc.
   - MySQL: CPU/IOPS, slow queries, connections, storage thresholds.
-  - Alerts via Action Groups to on-call channels (email/Teams/PagerDuty).
 
 ---
 
 ## 9) Delivery Model (CI/CD & GitOps)
 
 - **Build**
-  - Build microservice images, tag (`<repo>:<sha|semver>`), and push to ACR.
+  - Build microservice images, tag, and push to ACR via Github Actions.
 - **Deploy**
-  - Recommend **Helm** charts and **Argo CD** (or Flux) for GitOps.
+  - **Helm** charts and **Argo CD** for GitOps.
   - Use **workload identity** for controllers that need Azure APIs (e.g., External Secrets Operator if used).
 - **Config**
-  - Store non-secrets in Git (ConfigMaps/values). Store secrets in Key Vault; consume via CSI or External Secrets.
+  - Secrets are stored in Key Vault; consume via CSI or External Secrets.
 
 ---
 
-## 10) Operations (Day-2)
-
-- **Access management:** Keep cluster admin via AAD groups; rotate membership regularly.
-- **Backup & DR:** Verify scheduled backups for MySQL; rehearse restore to DR region; capture RTO/RPO.
-- **Patching:** Use AKS auto-upgrade channels or scheduled upgrade windows; enforce node image upgrades.
-- **Cost management:** Tag all resources; set budgets/alerts; right-size node pools and MySQL tiers.
-- **Runbooks:** Incident response for image pull failures, CSI mount errors, DNS resolution issues.
-
----
-
-## 11) Assumptions / Not in Terraform
+## 10) Assumptions / Not in Terraform
 
 - Public ingress, DNS records, certificates, and WAF are **out of scope** here and should be added per environment.
-- GitHub/Azure DevOps pipelines, Argo CD controllers, and Helm charts are **managed outside** this Terraform stack.
-- Image repositories/namespaces and app telemetry instrumentation are handled by the application teams.
+- GitHub Actions workflows, Argo CD, and Helm charts are **managed outside** this Terraform stack.
 
 ---
 
-## 12) Terraform Mapping (Appendix)
+## 11) Terraform Mapping (Appendix)
 
 | Area | Azure Resource / Interaction | Key Attributes | Module / File |
 |---|---|---|---|
@@ -312,8 +287,6 @@ sequenceDiagram
    - Push images to ACR.
    - Use Helm/Argo CD to deploy the manifests targeting namespace.
 - **Note** — Detailed design along with the exact steps for CI/CD and GitOps using Github Action, Helm, ArgoCD provided in the mentioned task directory.
-
-> **Post-deploy hardening:** Add Private Endpoints for KV/ACR, configure WAF ingress, and finalize NSG/Azure Firewall rules.
 
 ---
 
