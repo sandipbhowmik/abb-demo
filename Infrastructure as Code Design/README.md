@@ -22,27 +22,7 @@ The PetClinic platform is deployed on **Azure Kubernetes Service (AKS)** and int
 
 ### 2.1 Logical Architecture
 
-```mermaid
-flowchart LR
-  subgraph AKS["AKS Cluster (${name_prefix}-aks)"]
-    direction TB
-    NS[Namespace: apps]
-    SA[ServiceAccount: petclinic-sa]
-    SVC1[PetClinic Microservices]
-  end
-
-  ACR[(Azure Container Registry\n${name_prefix}acr)]
-  KV[(Azure Key Vault\n${name_prefix}-kv)]
-  LA[(Log Analytics Workspace\n${name_prefix}-law)]
-  AI[(Application Insights\n${name_prefix}-appi)]
-  MYSQL[(MySQL Flexible Server\nPrivate Access\n${name_prefix}-mysql)]
-
-  SVC1 ---|Pull images (AcrPull via kubelet ID)| ACR
-  SVC1 ---|Secrets mount (KV CSI + Workload Identity)| KV
-  SVC1 ---|Telemetry\n(App Insights SDK/OTel)| AI
-  AKS ---|Cluster/Node/Container Logs| LA
-  SVC1 ---|Private DNS -> VNet| MYSQL
-```
+![Logical architecture for PetClinic on Azure](iac-diagram.png "PetClinic logical architecture")
 
 ### 2.2 Network Topology
 
