@@ -1,4 +1,4 @@
-# Secrets Scannning & Code Security
+# Secrets Scanning & Code Security
 
 > **Scope:** This README documents how the CI workflow runs **secret scanning** and **code security analysis** _before_ any container build/push. It is designed for **private repos without GitHub Advanced Security (GHAS)** and uses open‑source scanners and CI gates to block risky changes.
 
