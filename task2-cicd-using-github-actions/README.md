@@ -16,12 +16,6 @@
 - **Platforms:** `linux/amd64, linux/arm64` (via Buildx + QEMU).  
 - **Tags:** `<reg>/<ns>/<svc>:sha-<github.sha>` and `:latest`.
 
-> **Diagram PNG:** If you have a rendered pipeline PNG, drop it next to this file and reference it:
->
-> ```md
-> ![Build/Test/Push pipeline](pipeline-diagram.png "Build/Test/Push pipeline")
-> ```
-
 ---
 
 ## 2) Triggers, Permissions & Environments
