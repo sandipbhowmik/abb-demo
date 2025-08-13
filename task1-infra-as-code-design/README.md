@@ -1,24 +1,23 @@
 # PetClinic on Azure — Detailed Architecture & Design
 
-> **Scope:** This README describes the target architecture that is provisioned by the Terraform codebase (`tf-aca2aks-secure-3`). It covers Azure resources, networking, identity & RBAC, security, scalability, and operational considerations. All names are parameterized by `var.name_prefix` unless otherwise stated.
+> **Scope:** This README describes the target architecture that is provisioned by the Terraform codebase (`tf-az-infraprovison`). It covers Azure resources, networking, identity & RBAC, security, scalability, and operational considerations. All names are parameterized by `var.name_prefix` unless otherwise stated.
 
-> **Note:** The design below reflects the intended state encoded in Terraform (AKS-based deployment replacing the older ACA path). If you change module defaults/variables, update the document accordingly.
+> **Note:** The design below reflects the intended state encoded in Terraform.
 
 ---
 
 ## 1) Executive Overview
 
-The PetClinic platform is deployed on **Azure Kubernetes Service (AKS)** and integrates with **Azure Container Registry (ACR)** for images, **Azure Key Vault (KV)** for secrets (via **CSI driver + workload identity**), **Azure Monitor (Log Analytics + Application Insights)** for observability, and **Azure Database for MySQL – Flexible Server** for persistence. Network isolation is achieved using a dedicated **VNet** with separate subnets for AKS, apps, and database. Identity is managed through **Azure AD** with **OIDC-based Workload Identity** and least-privilege RBAC on ACR and Key Vault.
+The PetClinic application is deployed on **Azure Kubernetes Service (AKS)** and integrates with **Azure Container Registry (ACR)** for images, **Azure Key Vault (KV)** for secrets (via **CSI driver + workload identity**), **Azure Monitor (Log Analytics + Application Insights)** for observability, and **Azure Database for MySQL – Flexible Server** for persistence. Network isolation is achieved using a dedicated **VNet** with separate subnets for AKS, apps, and database. Identity is managed through **Azure AD** with **OIDC-based Workload Identity** and least-privilege RBAC on ACR and Key Vault.
 
 **Key principles**
 - **Security by design:** AAD-backed AKS, local accounts disabled, KV CSI with rotation, private MySQL access through Private DNS, Azure Policy enabled.
-- **Scalability:** AKS node pool autoscaling; guidance for HPA/VPA and additional user node pools.
+- **Scalability:** AKS node pool autoscaling.
 - **Separation of concerns:** App tier on AKS; data tier on MySQL; platform services (ACR, KV, LA, App Insights) decoupled for lifecycle independence.
-- **GitOps-ready:** Designed to work with Helm/Argo CD for declarative delivery (optional section below).
 
 ---
 
-## 2) Architecture Diagrams (Mermaid)
+## 2) Solution Architecture
 
 ### 2.1 Logical Architecture
 
@@ -32,7 +31,7 @@ flowchart TB
   SNET_AKS["Subnet snet-aks 10.60.1.0/24"]
   SNET_APP["Subnet snet-app 10.60.2.0/24"]
   SNET_MYSQL["Subnet snet-mysql 10.60.3.0/24 (delegated)"]
-  PDNS["Private DNS Zone\nprivatelink.mysql.database.azure.com\n(linked to VNet)"]
+  PDNS["Private DNS Zone-privatelink.mysql.database.azure.com (linked to VNet)"]
 
   VNET --- SNET_AKS
   VNET --- SNET_APP
@@ -176,7 +175,7 @@ sequenceDiagram
 - **Private MySQL** with VNet integration and Private DNS.
 - **RBAC** enforced for ACR and Key Vault.
 
-### Gaps & Recommendations
+### Prod Deployment Recommendations
 1. **Key Vault public network access** is enabled in baseline → **Enable Private Endpoint**, disable public access, and restrict firewall to trusted ranges.
 2. **ACR** is public by default → with **Premium**, enable **Private Endpoint** and disable public access where feasible.
 3. **Ingress hardening** → Use **App Gateway WAF** or NGINX Ingress + WAF in front; terminate TLS with managed certs; restrict source IPs where applicable.
@@ -184,7 +183,7 @@ sequenceDiagram
 5. **Image security** → Enable **Microsoft Defender for Containers** and CI image scanning (e.g., Trivy/GHAS). Enforce signed images (Notary/Azure Policy).
 6. **DB resilience** → Current SKU is Basic-class. For production, enable **zone redundancy/HA**, increase vCores/storage, and enforce server parameter hardening.
 7. **Network controls** → Tighten **NSG rules**, consider **Azure Firewall** for egress control and FQDN allowlisting (ACR/KV endpoints).
-8. **Secret rotation** → Define/automate rotation cadence & scope (DB creds, app secrets).
+8. **Secret rotation** → Automate rotation to be scoped (DB creds, app secrets).
 
 ---
 
