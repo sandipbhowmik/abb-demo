@@ -1,6 +1,6 @@
 # GitOps with Argo CD on AKS — Helm-Based Deployments
 
-This document explains how **Argo CD** automates deployments of kubenetes manifest files using **Helm charts** to **Azure Kubernetes Service (AKS)**, how it **tracks versions**, and how to **roll back** reliably. It includes installation, GitHub PAT integration, and app configuration.
+This document explains how **Argo CD** automates deployments of kubenetes manifest files using **Helm charts** to **Azure Kubernetes Service (AKS)**, with **version tracking**, **rolling back** reliably.
 
 ---
 
@@ -27,7 +27,7 @@ Argo CD automates the deployment of the desired application states in the specif
 
 - kubectl access to AKS cluster.
 - Helm 3.x installed locally.
-- (Private repos) a **GitHub Personal Access Token** with **read-only** access to the repo (`repo:read`).
+- (Private repos) a **GitHub Personal Access Token** with **read-only** access to the repo..
 
 ---
 
@@ -54,10 +54,10 @@ Expose the Argo CD API/UI (choose one):
 
 ## 4) Connect Argo CD to Your GitHub Repo (PAT)
 
-> Scope the PAT to **read-only** repository access with below permissions.
+> Scope the PAT to **read-only** repository access with below permissions:
 
-Content: Repository contents, commits, branches, downloads, releases, and merges (aceess to be enabled)
-Metadata: Search repositories, list collaborators, and access repository metadata. (enabled by default)
+**Content:** Repository contents, commits, branches, downloads, releases, and merges (aceess to be enabled)
+**Metadata:** Search repositories, list collaborators, and access repository metadata. (enabled by default)
 
 ---
 
