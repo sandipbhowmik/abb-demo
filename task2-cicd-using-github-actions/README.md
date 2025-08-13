@@ -74,8 +74,8 @@ on:
 
 ## 4) Authentication to Azure & ACR
 
-### OIDC (Entra ID federated credentials)
-- The workflow requests an **OIDC token** from GitHub and exchanges it with **Entra ID** via `azure/login@v2` to get an Azure access token.
+### OpenID Connect (Entra ID federated credentials)
+- The workflow requests an **OpenID Connect (OIDC) token** from GitHub and exchanges it with **Entra ID** via `azure/login@v2` to get an Azure access token.
 - The Azure App (client) must be granted **AcrPush** on the target ACR **scope** (prefer registry-level scope only).
 
 **Minimal roles**
