@@ -1,4 +1,4 @@
-# PetClinic on Azure — Infrastructure Architecture & Design
+# PetClinic on Azure — Infrastructure Architecture
 
 > **Scope:** This README describes the target architecture that is provisioned by the Terraform codebase (`tf-az-infraprovison`). It covers Azure resources, networking, identity & RBAC, security, scalability etc. All names are parameterized by `var.name_prefix` unless otherwise stated.
 
