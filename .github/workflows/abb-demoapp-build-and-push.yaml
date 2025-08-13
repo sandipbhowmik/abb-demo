@@ -1,5 +1,7 @@
 # ──────────────────────────────────────────────────────────────────────────────
 # Builds the Spring Petclinic microservices from /src and pushes images to ACR
+# Now gated by security checks (secret scan, SAST, SCA, Dockerfile lint).
+# Post-push steps run Trivy image scan, generate SBOM, and sign with Cosign.
 # ──────────────────────────────────────────────────────────────────────────────
 name: ABB Demo App Build & Push
 
@@ -25,8 +27,92 @@ env:
   PLATFORMS: linux/amd64,linux/arm64
   ACR_NAME: abbdemoazdevacr
 
+# ──────────────────────────────────────────────────────────────────────────────
+# 1) Static security checks (secrets, SAST/CodeQL, Dockerfile lint)
+# ──────────────────────────────────────────────────────────────────────────────
 jobs:
+  security_static:
+    name: Static Security (Secrets + SAST + Dockerfile Lint)
+    runs-on: self-hosted
+    permissions:
+      contents: read
+      security-events: write   # required for CodeQL
+      id-token: write
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      # Secret scanning (gitleaks)
+      - name: Secret scan (gitleaks)
+        uses: gitleaks/gitleaks-action@v2
+        with:
+          args: "--no-banner --redact --verbose --exit-code 1"
+
+      # SAST (CodeQL) — Java
+      - name: Initialize CodeQL
+        uses: github/codeql-action/init@v3
+        with:
+          languages: java
+
+      # For Java, build the code so CodeQL can index it.
+      - name: CodeQL Autobuild
+        uses: github/codeql-action/autobuild@v3
+
+      - name: Perform CodeQL Analysis
+        uses: github/codeql-action/analyze@v3
+
+      # Dockerfile lint
+      - name: Lint Dockerfile (hadolint)
+        uses: hadolint/hadolint-action@v3.1.0
+        with:
+          dockerfile: src/docker/Dockerfile
+
+  # ────────────────────────────────────────────────────────────────────────────
+  # 2) Software Composition Analysis (SCA) per microservice
+  # ────────────────────────────────────────────────────────────────────────────
+  sca:
+    name: SCA (OWASP Dependency-Check)
+    runs-on: self-hosted
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - name: config-server
+            module: spring-petclinic-config-server
+          - name: api-gateway
+            module: spring-petclinic-api-gateway
+          - name: customers-service
+            module: spring-petclinic-customers-service
+          - name: vets-service
+            module: spring-petclinic-vets-service
+          - name: visits-service
+            module: spring-petclinic-visits-service
+          - name: chat-agent
+            module: spring-petclinic-chat-agent
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Set up Temurin ${{ env.JAVA_VERSION }}
+        uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: ${{ env.JAVA_VERSION }}
+          cache: maven
+
+      - name: OWASP Dependency-Check (fail on CVSS >= 7.0)
+        run: |
+          mvn -f src/${{ matrix.module }}/pom.xml -B -ntp \
+            org.owasp:dependency-check-maven:check \
+            -DfailBuildOnCVSS=7.0
+
+  # ────────────────────────────────────────────────────────────────────────────
+  # 3) Build & Push — runs only if both security jobs pass
+  #    Also runs container scan (Trivy), SBOM (Syft), and Cosign signing.
+  # ────────────────────────────────────────────────────────────────────────────
   build:
+    name: Build & Push Images (after security gates)
+    needs: [security_static, sca]
     runs-on: self-hosted
     permissions:
       id-token: write
@@ -100,7 +186,7 @@ jobs:
           client-id: ${{ secrets.AZURE_CLIENT_ID }}
           tenant-id: ${{ secrets.AZURE_TENANT_ID }}
           subscription-id: ${{ secrets.AZURE_SUBSCRIPTION_ID }}
-          
+
       - name: Log in to Azure Container Registry (ACR)
         run: az acr login --name "$ACR_NAME"
 
@@ -109,7 +195,6 @@ jobs:
         run: |
           echo "reg=${{ env.ACR_LOGIN_SERVER }}" >> $GITHUB_OUTPUT
           echo "ns=${IMAGE_NAMESPACE}" >> $GITHUB_OUTPUT
-
 
       - name: Build and push multi-platform image
         uses: docker/build-push-action@v6
@@ -125,3 +210,30 @@ jobs:
             ARTIFACT_NAME=app
             EXPOSED_PORT=${{ matrix.port }}
             DOCKERIZE_VERSION=${{ env.DOCKERIZE_VERSION }}
+
+      # Container vulnerability scan (Trivy) on pushed image
+      - name: Trivy scan (image)
+        uses: aquasecurity/trivy-action@0.24.0
+        with:
+          image-ref: ${{ steps.img.outputs.reg }}/${{ steps.img.outputs.ns }}/${{ matrix.name }}:sha-${{ github.sha }}
+          format: 'table'
+          vuln-type: 'os,library'
+          exit-code: '1'
+          severity: 'HIGH,CRITICAL'
+
+      # SBOM generation (Syft) — upload as artifact
+      - name: Generate SBOM (syft)
+        uses: anchore/sbom-action@v0
+        with:
+          image: ${{ steps.img.outputs.reg }}/${{ steps.img.outputs.ns }}/${{ matrix.name }}:sha-${{ github.sha }}
+          artifact-name: "sbom-${{ matrix.name }}-${{ github.sha }}.spdx.json"
+
+      # Cosign keyless signing (requires id-token: write; will use OIDC)
+      - name: Install Cosign
+        uses: sigstore/cosign-installer@v3.6.0
+
+      - name: Sign image (keyless)
+        env:
+          COSIGN_EXPERIMENTAL: "true"
+        run: |
+          cosign sign --yes ${{ steps.img.outputs.reg }}/${{ steps.img.outputs.ns }}/${{ matrix.name }}:sha-${{ github.sha }}
