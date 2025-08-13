@@ -70,9 +70,9 @@ Expose the Argo CD API/UI:
 - Go to Settings → Repositories → CONNECT REPO → HTTPS.
 
 **Fill in:**
-- Repository URL: https://github.com/<owner>/<repo>.git
-- Username: <github username>
-- Password: <put github PAT>
+- Repository URL: `https://github.com/<owner>/<repo name>.git`
+- Username: `<github username>`
+- Password: `<put github PAT>`
 - (Optional) Name: a friendly name for the repo
 - Click Connect. You should see the repo show up with a green/“successful” status.
 
