@@ -4,7 +4,7 @@
 
 ---
 
-## 0) GitHub Advanced Security
+## GitHub Advanced Security
 
 GitHub Advanced Security for secret scanning and code security analysis capabilities **require purchase** of GitHub’s Advanced Security products:
 
@@ -18,27 +18,7 @@ GitHub Advanced Security for secret scanning and code security analysis capabili
 
 ## 1) High‑Level Architecture
 
-```mermaid
-flowchart LR
-  Dev[Developer] -->|push/PR| GH[GitHub]
-  GH --> Runner[GitHub Actions (self-hosted runner)]
-  subgraph Security Scans on Runner
-    GL[Gitleaks (secrets)]
-    TH[TruffleHog (optional)]
-    SG[Semgrep (SAST)]
-    DC[OWASP Dependency-Check (SCA)]
-    HL[Hadolint (Dockerfile lint)]
-    TV[Trivy (repo/FS scan)]
-  end
-  Runner --> Artifacts[Build artifacts: JSON/HTML/XML reports]
-  SG --> Report[PR annotations / summary]
-  DC --> Artifacts
-  GL --> Artifacts
-  TH --> Artifacts
-  TV --> Artifacts
-  HL --> Artifacts
-  Artifacts --> Review[Human review + required status checks]
-```
+
 
 **Key points**
 - Triggers on `pull_request` and `push` (to default branches).
@@ -183,8 +163,6 @@ We recommend marking these as **required status checks** on the default branch:
 - `OWASP Dependency-Check (SCA)`
 - `Lint Dockerfile (hadolint)`
 - `Unit tests` (from your build job)
-
-> You can start permissive (warn-only) and later make them blocking by removing `|| true` or adjusting severities.
 
 ---
 
