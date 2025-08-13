@@ -15,10 +15,12 @@
 - **Registry:** `abbdemoazdevacr.azurecr.io` (ACR name: `abbdemoazdevacr`).  
 - **Platforms:** `linux/amd64, linux/arm64` (via Buildx + QEMU).  
 - **Tags:** `<reg>/<ns>/<svc>:sha-<github.sha>` and `:latest`.
+- **Workflow Name** `abb-demo/.github/workflows
+/abb-demoapp-build-and-push.yaml`
 
 ---
 
-## 2) Triggers, Permissions & Environments
+## 2) Triggers, Permissions
 
 ### Triggers
 - `push` to `main` or `master`
@@ -46,7 +48,7 @@ on:
 
 ## 3) Job & Matrix
 
-- **runs-on:** `self-hosted`
+- **runs-on:** `self-hosted` runner
 - **Matrix services:** (based on the workflow)
   - `config-server` → `spring-petclinic-config-server` (port **8888**)
   - `api-gateway` → `spring-petclinic-api-gateway` (port **8080**)
@@ -105,7 +107,7 @@ on:
   run: mvn -B -ntp -DskipITs test
 ```
 
-- Optionally add **integration tests** (spin up compose services or use Testcontainers) and run them before building images:
+- Optionally add **integration tests** and run them before building images:
 ```yaml
 - name: Run integration tests
   run: mvn -B -ntp -DskipUnitTests verify -Pintegration-tests
