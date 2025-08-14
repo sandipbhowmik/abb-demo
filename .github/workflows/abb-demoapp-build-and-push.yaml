@@ -109,7 +109,7 @@ jobs:
         with:
           distribution: temurin
           java-version: ${{ env.JAVA_VERSION }}
-          cache: maven
+          #cache: maven
 
       - name: OWASP Dependency-Check (fail on CVSS >= 7.0)
         run: |
