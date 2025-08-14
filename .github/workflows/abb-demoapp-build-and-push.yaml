@@ -47,6 +47,14 @@ jobs:
         uses: gitleaks/gitleaks-action@v2
         with:
           args: "--no-banner --redact --verbose --exit-code 1"
+      
+     # JDK 17 on the runner for Maven to use
+      - name: Set up Temurin 17
+        uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: '17'
+          cache: maven
 
       # SAST (CodeQL) — Java
       - name: Initialize CodeQL
@@ -54,9 +62,12 @@ jobs:
         with:
           languages: java
 
-      # For Java, build the code so CodeQL can index it.
-      - name: CodeQL Autobuild
-        uses: github/codeql-action/autobuild@v3
+      # Manual build for CodeQL (instead of autobuild)
+      - name: Build (manual for CodeQL on Java 17)
+        working-directory: src
+        run: |
+          ./mvn -v
+          ./mvn -B -ntp -DskipTests clean package
 
       - name: Perform CodeQL Analysis
         uses: github/codeql-action/analyze@v3
