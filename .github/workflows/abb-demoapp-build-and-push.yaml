@@ -66,8 +66,8 @@ jobs:
       - name: Build (manual for CodeQL on Java 17)
         working-directory: src
         run: |
-          ./mvn -v
-          ./mvn -B -ntp -DskipTests clean package
+          mvn -v
+          mvn -B -ntp -DskipTests clean package
 
       - name: Perform CodeQL Analysis
         uses: github/codeql-action/analyze@v3
@@ -109,13 +109,14 @@ jobs:
         with:
           distribution: temurin
           java-version: ${{ env.JAVA_VERSION }}
-          #cache: maven
+          cache: maven
 
       - name: OWASP Dependency-Check (fail on CVSS >= 7.0)
         run: |
           mvn -f src/${{ matrix.module }}/pom.xml -B -ntp \
             org.owasp:dependency-check-maven:check \
-            -DfailBuildOnCVSS=7.0
+            -DfailBuildOnCVSS=7.0 \
+            -Dnvd.api.key="${{ secrets.NVD_API_KEY }}"
 
   # ────────────────────────────────────────────────────────────────────────────
   # 3) Build & Push — runs only if both security jobs pass
