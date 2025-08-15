@@ -78,8 +78,6 @@ jobs:
 
       - name: Set up Docker Buildx
         uses: docker/setup-buildx-action@v3
-        with:
-          driver: docker
 
       - name: Build jar for ${{ matrix.name }}
         shell: bash
@@ -97,13 +95,14 @@ jobs:
           cp -f "$JAR" "$TARGET/app.jar"
 
       - name: Build single-arch image (local, linux/amd64)
+        id: build_tar
         uses: docker/build-push-action@v6
         with:
           context: src/${{ matrix.module }}/target
           file: ${{ env.DOCKERFILE }}
-          platforms: linux/amd64
-          load: true                        
+          platforms: linux/amd64                 
           tags: ${{ steps.img.outputs.pre }}
+          outputs: type=docker,dest=${{ runner.temp }}/${{ matrix.name }}-${{ github.sha }}.tar
           build-args: |
             ARTIFACT_NAME=app
             EXPOSED_PORT=${{ matrix.port }}
@@ -112,8 +111,8 @@ jobs:
       - name: Trivy scan
         run: |
           trivy image \
-            --format table \
-            --vuln-type os,library \
+            ---scanners vuln \
+            --pkg-types os,library \
             --severity HIGH,CRITICAL \
             --exit-code 1 \
-            "${{ steps.img.outputs.pre }}"
+            --input "${{ runner.temp }}/${{ matrix.name }}-${{ github.sha }}.tar"
