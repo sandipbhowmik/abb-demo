@@ -111,7 +111,7 @@ jobs:
       - name: Trivy scan
         run: |
           trivy image \
-            ---scanners vuln \
+            --scanners vuln \
             --pkg-types os,library \
             --severity HIGH,CRITICAL \
             --exit-code 1 \
