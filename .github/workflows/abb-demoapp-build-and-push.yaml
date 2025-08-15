@@ -80,7 +80,7 @@ jobs:
     #      dockerfile: src/docker/Dockerfile
 
   # ────────────────────────────────────────────────────────────────────────────
-  # 2) Software Composition Analysis (SCA) per microservice
+  # Software Composition Analysis (SCA) per microservice
   # ────────────────────────────────────────────────────────────────────────────
   sca:
     name: SCA (OWASP Dependency-Check)
@@ -159,11 +159,8 @@ jobs:
       - name: Set image registry/repo
         id: img
         run: |
-          echo "reg=${{ env.ACR_LOGIN_SERVER }}" >> $GITHUB_OUTPUT
-          echo "ns=${IMAGE_NAMESPACE}" >> $GITHUB_OUTPUT
-          echo "pre=${{ env.ACR_LOGIN_SERVER }}/${IMAGE_NAMESPACE}/${{ matrix.name }}:pre-${{ github.sha }}" >> $GITHUB_OUTPUT
-          echo "sha=${{ env.ACR_LOGIN_SERVER }}/${IMAGE_NAMESPACE}/${{ matrix.name }}:sha-${{ github.sha }}" >> $GITHUB_OUTPUT
-          echo "latest=${{ env.ACR_LOGIN_SERVER }}/${IMAGE_NAMESPACE}/${{ matrix.name }}:latest" >> $GITHUB_OUTPUT
+          echo "ns=${{ env.IMAGE_NAMESPACE }}" >> $GITHUB_OUTPUT
+          echo "pre=local/${{ env.IMAGE_NAMESPACE }}/${{ matrix.name }}:pre-${{ github.sha }}" >> $GITHUB_OUTPUT
 
       - name: Set up Temurin ${{ env.JAVA_VERSION }}
         uses: actions/setup-java@v4
