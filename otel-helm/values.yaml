@@ -1,0 +1,51 @@
+mode: deployment
+
+image:
+  repository: otel/opentelemetry-collector-contrib
+  tag: latest
+
+config:
+  receivers:
+    otlp:
+      protocols:
+        grpc:
+        http:
+
+  processors:
+    batch: {}
+
+  exporters:
+    # Exporter for Application Insights
+    azuremonitor:
+      instrumentation_key: "20ff652e-3ce4-4811-95cb-50bba11f8a8b"
+      endpoint: "https://dc.services.visualstudio.com/v2/track"
+      logs_enabled: true
+      metrics_enabled: true
+      traces_enabled: true
+
+    # Exporter for Azure Monitor OTLP endpoint using Managed Identity
+    otlp/azure:
+      endpoint: "https://otlp.monitor.azure.com:4317"
+      authentication:
+        aad:
+          managed_identity:
+            client_id: "7c7ff9e2-0d51-46d0-bda4-0219f8217ced"
+      sending_queue:
+        enabled: true
+        num_consumers: 2
+        queue_size: 2000
+
+  service:
+    pipelines:
+      traces:
+        receivers: [otlp]
+        processors: [batch]
+        exporters: [azuremonitor, otlp/azure]
+      metrics:
+        receivers: [otlp]
+        processors: [batch]
+        exporters: [azuremonitor, otlp/azure]
+      logs:
+        receivers: [otlp]
+        processors: [batch]
+        exporters: [azuremonitor]
