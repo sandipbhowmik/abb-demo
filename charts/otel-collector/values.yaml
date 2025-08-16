@@ -4,7 +4,7 @@ workloadIdentity:
 mode: deployment
 image:
   repository: otel/opentelemetry-collector-contrib
-  tag: latest
+  tag: 0.131.0
 
 config:
   receivers:
@@ -16,7 +16,7 @@ config:
     batch: {}
   exporters:
     azuremonitor:
-    #  instrumentation_key: "20ff652e-3ce4-4811-95cb-50bba11f8a8b"
+      instrumentation_key: "20ff652e-3ce4-4811-95cb-50bba11f8a8b"
       endpoint: "https://dc.services.visualstudio.com/v2/track"
     otlp/azure:
       endpoint: "https://otlp.monitor.azure.com:4317"
@@ -31,14 +31,14 @@ config:
   service:
     pipelines:
       traces:
-      #  receivers: [otlp]
-      #  processors: [batch]
-        exporters: [azuremonitor]
+        receivers: [otlp]
+        processors: [batch]
+        exporters: [azuremonitor, otlp]
       metrics:
-      #  receivers: [otlp]
-      #  processors: [batch]
-        exporters: [azuremonitor]
+        receivers: [otlp]
+        processors: [batch]
+        exporters: [azuremonitor, otlp]
       logs:
-      #  receivers: [otlp]
-      #  processors: [batch]
-        exporters: [azuremonitor]
+        receivers: [otlp]
+        processors: [batch]
+        exporters: [azuremonitor, otlp]
