@@ -1,0 +1,5 @@
+apiVersion: v2
+name: otel-collector
+version: 0.1.0
+description: Custom OpenTelemetry Collector chart for AKS
+appVersion: "latest"
