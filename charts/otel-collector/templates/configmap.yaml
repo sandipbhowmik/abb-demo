@@ -4,4 +4,4 @@ metadata:
   name: {{ include "otel-collector.fullname" . }}-config
 data:
   otel-collector-config.yaml: |
-    {{ toYaml .Values.config | indent 4 }}
+     {{ toYaml .Values.config | indent 4 }}
