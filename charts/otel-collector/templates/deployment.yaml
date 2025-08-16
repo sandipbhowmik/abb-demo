@@ -5,7 +5,7 @@ metadata:
   labels:
     app: {{ include "otel-collector.name" . }}
 spec:
-  replicas: 1
+  replicas: 2
   selector:
     matchLabels:
       app: {{ include "otel-collector.name" . }}
@@ -14,7 +14,7 @@ spec:
       labels:
         app: {{ include "otel-collector.name" . }}
     spec:
-      serviceAccountName: default
+      serviceAccountName: {{ include "otel-collector.fullname" . }}-sa
       containers:
         - name: otel-collector
           image: "{{ .Values.image.repository }}:{{ .Values.image.tag }}"
