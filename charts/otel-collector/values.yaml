@@ -16,6 +16,7 @@ config:
     batch: {}
   exporters:
     azuremonitor:
+      connection_string: "IngestionEndpoint=https://centralus.ingestion.monitor.azure.com/"
       #instrumentation_key: "20ff652e-3ce4-4811-95cb-50bba11f8a8b"
       endpoint: "https://dc.services.visualstudio.com/v2/track"
     #otlp/azure:
