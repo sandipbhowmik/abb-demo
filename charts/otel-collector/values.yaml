@@ -18,9 +18,6 @@ config:
     azuremonitor:
       instrumentation_key: "20ff652e-3ce4-4811-95cb-50bba11f8a8b"
       endpoint: "https://dc.services.visualstudio.com/v2/track"
-      logs_enabled: true
-      metrics_enabled: true
-      traces_enabled: true
     otlp/azure:
       endpoint: "https://otlp.monitor.azure.com:4317"
       authentication:
