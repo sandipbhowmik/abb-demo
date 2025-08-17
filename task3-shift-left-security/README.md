@@ -37,17 +37,73 @@ GitHub Advanced Security for secret scanning and code security analysis capabili
 1) **Checkout & environment prep**  
    Sets up Java/Maven (for Java repos) and any language‑specific tooling.
 
-2) **Secret scanning**  
-   - **Gitleaks**: scans repository (and optionally history) for secrets, fails on any finding.  
+2) **Secret scanning**
+ 
+   - **Gitleaks**: scans repository (and optionally history) for secrets, fails on any finding. 
+  
+   <img width="956" height="740" alt="image" src="https://github.com/user-attachments/assets/9c9237f3-bd8f-4ede-a473-ccecb7778795" />
 
-3) **Static Security Testing**  
+
+4) **Static Security Testing**  
    - **CodeQL**: fast source analysis; annotates PRs and fails on high‑severity findings.
 
-4) **Reporting & Gates**  
+5) **Reporting & Gates**  
    - Return **non‑zero exit codes** to fail the job on HIGH/CRITICAL findings.  
    - For productio  deployments, **branch protection** to be enforced so PRs cannot merge unless all required checks pass. **In current pipeline, if any vulnerabilities or secrets are detected, the build/push job will not be triggered and it will be blocked for any deployments.**
 
 ---
+
+## 3) Security Configuration
+
+```
+yaml
+
+# Static security checks
+
+jobs:
+  security_static:
+    name: Static Security Check
+    runs-on: self-hosted
+    permissions:
+      contents: read
+      actions: read
+      security-events: write   # required for CodeQL
+      id-token: write
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      # Secret scanning (gitleaks)
+      - name: Secret scan (gitleaks)
+        uses: gitleaks/gitleaks-action@v2
+        with:
+          args: "--no-banner --redact --verbose --exit-code 1"
+      
+     # JDK 17 on the runner for Maven to use
+      - name: Set up Temurin 17
+        uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: '17'
+          cache: maven
+
+      # SAST (CodeQL) — Java
+      - name: Initialize CodeQL
+        uses: github/codeql-action/init@v3
+        with:
+          languages: java
+
+      # Manual build for CodeQL
+      - name: Build (manual for CodeQL on Java 17)
+        working-directory: src
+        run: |
+          mvn -v
+          mvn -B -ntp -DskipTests clean package
+
+      - name: Perform CodeQL Analysis
+        uses: github/codeql-action/analyze@v3
+```
+
 
 ## 3) Change Log
 - **v1.0** — Initial design for secret & code security scanning with GHAS.
