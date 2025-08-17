@@ -27,7 +27,7 @@ Authentication to Azure uses short-lived OIDC tokens (id-token: write; contents:
 
 ---
 
-## 2) Triggers, Permissions
+## 2) Action Triggers, Permissions
 
 ### Triggers
 - `push` to `main` or `master`
