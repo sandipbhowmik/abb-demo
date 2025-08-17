@@ -138,9 +138,9 @@ flowchart LR
 
 - **AKS**
   - System pool autoscaling **1–2** nodes. Added **user pools** for application workloads.
-  - For multi-AZ resilience, enable **zone spread** and **PodDisruptionBudgets**.
+  - For multi-AZ resilience, **zone spread** and **PodDisruptionBudgets** to be enabled. (For this demo not enabled)
 - **MySQL Flexible**
-  - Scale up vCores/storage online; enable HA and zone redundancy for production SLAs.
+  - Scale up vCores/storage online; for production SLAs, HA and zone redundancy to be enabled. (these options not selected for this demo) 
   - Backup retention currently **7 days**.
 
 ---
@@ -149,7 +149,7 @@ flowchart LR
 
 - **Logs & Metrics**
   - **Container/Node/Cluster logs** shipped to **Log Analytics** (via OMS agent/AMA per module).
-  - **Application telemetry** to **Application Insights** (use SDK/OTel exporters).
+  - **Application telemetry** to **Application Insights** using Open Telemretry exporters.
 - **Dashboards & Alerts (examples)**
   - AKS health: node readiness, pod restarts, HPA activity.
   - App health: request rate/latency, dependency failures etc.
@@ -163,7 +163,7 @@ flowchart LR
   - Build microservice images, tag, and push to ACR via Github Actions.
 - **Deploy**
   - **Helm** charts and **Argo CD** for GitOps.
-  - Use **workload identity** for controllers that need Azure APIs (e.g., External Secrets Operator if used).
+  - Use **workload identity** for controllers that need Azure APIs.
 - **Config**
   - Secrets are stored in Key Vault; consume via CSI or External Secrets.
 
