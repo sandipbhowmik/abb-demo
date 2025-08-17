@@ -24,6 +24,7 @@ GitHub Advanced Security for secret scanning and code security analysis capabili
 - Triggers on `pull_request`(this is must for prod deployment; not demonstrated in this pipeline),`push`.
 - **Self‑hosted** runner executes all scans.
 
+**
 <img width="810" height="740" alt="image" src="https://github.com/user-attachments/assets/18f21a43-9bf6-425a-8d70-28b75cd74e0a" />
 
 
