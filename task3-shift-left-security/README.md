@@ -12,7 +12,7 @@ GitHub Advanced Security for secret scanning and code security analysis capabili
 - **GitHub Code Security** — features to help find and fix vulnerabilities, like **code scanning**, **premium Dependabot features**, and **dependency review**.
 - GitHub makes **extra security features** available to customers who purchase GitHub Code Security or GitHub Secret Protection.
 
-> **Please note, **GitHub’s Advanced Security products i.e secret scanning and code security analysis for private repo can't be enabled until license is purchased. However, the equivalent coverage can be implemented using open‑source tools and branch protections for private repos.**
+> **Please note, GitHub’s Advanced Security products i.e. secret scanning and code security analysis for private repo can't be enabled until license is purchased. However, the equivalent coverage can be implemented using open‑source tools and branch protections for private repos.**
 
 ---
 
