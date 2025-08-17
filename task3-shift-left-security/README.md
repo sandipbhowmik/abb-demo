@@ -26,7 +26,7 @@ GitHub Advanced Security for secret scanning and code security analysis capabili
 
 ## Below options will be visible once GitHub Advanced Security enabled and respective options to be turned on accordingly.
 
-**
+
 <img width="810" height="740" alt="image" src="https://github.com/user-attachments/assets/18f21a43-9bf6-425a-8d70-28b75cd74e0a" />
 
 
