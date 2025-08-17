@@ -2,7 +2,7 @@
 
 > **Scope:** This document describes the GitHub Actions workflow `abb-demoapp-build-and-push.yaml` that builds, tests, and pushes container images for the PetClinic microservices to **Azure Container Registry (ACR)**. It covers triggers, jobs, matrix strategy, OIDC authentication to Azure, image tagging, and **security controls** including **secret scanning** and **security scanning** using GitHub Advanced Security features.
 
-> **Note:** **This workflow considering as CI or Continuous Integration. Continuous Deployment flow should be seperated from CI pipeline.**. 
+> **Note:** **This workflow considered as CI or Continuous Integration. Continuous Deployment flow should be seperated from CI pipeline.**. 
 
 ---
 
