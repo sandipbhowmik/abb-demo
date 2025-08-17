@@ -170,7 +170,7 @@ This section describes the **checks are in place** and **how they ensure securit
 **Gating**
 - Configuration **required status checks** on `main` where if the SAST secuirty checks mentioned in the first job are not passed, build job will not trigger.
 
-### 7.3 OSS Container Image Security (Tested as optional workflows, but not included in the petclinic demo CI workflow)
+### 7.3 OSS Container Image Security (Tested as optional workflow, but not included in the petclinic demo CI workflow)
 
 1. **Dockerfile lint** (Hadolint) — catches insecure base images and practices:
 ```yaml
@@ -194,7 +194,7 @@ This section describes the **checks are in place** and **how they ensure securit
 **Why this helps**
 - Prevents shipping images with **HIGH/CRITICAL CVEs**.
 
-### 7.4 Signing
+### 7.4 Signing (Tested as optional workflow, but not included in the petclinic demo CI workflow)
 
 **Recommendation**
 - **Cosign keyless signing** using GitHub OIDC; store signatures alongside images in ACR.
