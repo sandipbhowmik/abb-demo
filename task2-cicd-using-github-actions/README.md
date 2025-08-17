@@ -1,6 +1,7 @@
 # Build Pipeline — Github Actions Workflow Design
 
-> **Scope:** This README documents the GitHub Actions workflow `abb-demoapp-build-and-push.yaml` that builds, tests, and pushes container images for the PetClinic microservices to **Azure Container Registry (ACR)**. It covers triggers, jobs, matrix strategy, OIDC authentication to Azure, image tagging, and **security controls** including **secret scanning** and **security scanning** (SAST/SCA/container).  
+> **Scope:** This document describes the GitHub Actions workflow `abb-demoapp-build-and-push.yaml` that builds, tests, and pushes container images for the PetClinic microservices to **Azure Container Registry (ACR)**. It covers triggers, jobs, matrix strategy, OIDC authentication to Azure, image tagging, and **security controls** including **secret scanning** and **security scanning** using GitHub Advanced Security features.
+
 > **Note:** **This workflow considering as CI or Continuous Integration. Continuous Deployment flow should be seperated from CI pipeline.**. 
 
 ---
@@ -18,6 +19,12 @@
 - **Workflow Name** `abb-demo/.github/workflows
 /abb-demoapp-build-and-push.yaml`
 
+This pipeline is triggered on pushes to main/master, version tags (e.g., v*), or manual dispatch and runs on a self-hosted GitHub Actions runner that prepares Java 17, Maven, QEMU, Docker Buildx, and Dockerize v0.6.1. It fans out a matrix build for the PetClinic microservices (config-server, api-gateway, customers-service, vets-service, visits-service, chat-agent), compiles each with Maven to target/app.jar, and uses a single src/docker/Dockerfile (with module-specific build args such as EXPOSED_PORT) to build multi-architecture images (linux/amd64, linux/arm64) via Buildx. 
+
+Authentication to Azure uses short-lived OIDC tokens (id-token: write; contents: read) with azure/login@v2, followed by az acr login to push to abbdemoazdevacr.azurecr.io, tagging every image with both sha-<GITHUB_SHA> and latest for traceability. To ensure quality and security, the pipeline runs pre-build gates: Gitleaks fail the job on any secret findings; CodeQL fails on high/critical code issues. In production these jobs required status checks under branch protection so merges are blocked on failures. The combination of OIDC-based auth (no long-lived secrets), multi-arch reproducible builds, deterministic tagging, scanning gates delivers secure, portable, and auditable releases ready for AKS consumption.
+
+> **Note:** **This workflow considering as CI or Continuous Integration. Continuous Deployment flow should be seperated from CI pipeline.**. 
+
 ---
 
 ## 2) Triggers, Permissions
@@ -33,7 +40,7 @@
 - `id-token: write` (required for **OIDC** to Azure)
 
 ### Widen trigger paths
-Builds when app code changes, include `src/**`, `pom.xml`, etc.:
+Here trigger path has been defined as the Github actions workflow abb-demoapp-build-and-push.yaml. However, this path can be widen below with the below changes, include `src/**`, `pom.xml`, etc. as and if required.
 ```yaml
 on:
   push:
@@ -50,6 +57,8 @@ on:
 
 - **runs-on:** `self-hosted` runner
 - **Matrix services:** (based on the workflow)
+  Matrix jobs run in parallel, which speeds up the process compared to running each configuration sequentially
+  
   - `config-server` → `spring-petclinic-config-server` (port **8888**)
   - `api-gateway` → `spring-petclinic-api-gateway` (port **8080**)
   - `customers-service` → `spring-petclinic-customers-service` (port e.g., **8081**)
@@ -58,9 +67,9 @@ on:
   - `chat-agent` → `spring-petclinic-chat-agent` (port varies)
 - **Build context:** `src/${{ matrix.module }}/target`
 - **Dockerfile:** `src/docker/Dockerfile`
-- **Environment defaults (typical in this workflow):**
+- **Environment defaults (used in this workflow):**
   - `JAVA_VERSION=17`
-  - `MVN_ARGS='-B -ntp -DskipTests'` *(see test recommendations below)*
+  - `MVN_ARGS='-B -ntp -DskipTests'`
   - `ACR_LOGIN_SERVER=abbdemoazdevacr.azurecr.io`
   - `ACR_NAME=abbdemoazdevacr`
   - `IMAGE_NAMESPACE=demo-petclinic-app`
@@ -76,7 +85,7 @@ on:
 
 ### OpenID Connect (Entra ID federated credentials)
 - The workflow requests an **OpenID Connect (OIDC) token** from GitHub and exchanges it with **Entra ID** via `azure/login@v2` to get an Azure access token.
-- The Azure App (client) must be granted **AcrPush** on the target ACR **scope** (prefer registry-level scope only).
+- The Azure App (client) must be granted **AcrPush** on the target ACR **scope** (registry-level scope only).
 
 **Minimal roles**
 - **AcrPush** on `abbdemoazdevacr` (required to push images).
@@ -107,7 +116,7 @@ on:
   run: mvn -B -ntp -DskipITs test
 ```
 
-- Optionally add **integration tests** and run them before building images:
+- Optionally added **integration tests** to run before building images:
 ```yaml
 - name: Run integration tests
   run: mvn -B -ntp -DskipUnitTests verify -Pintegration-tests
@@ -124,7 +133,7 @@ on:
 
 ## 7) Security & Compliance
 
-This section describes the **checks are in place** and **how they ensure security**, split into: **secret scanning**, **code/dependency scanning (SAST/SCA)**, **container image scanning**, **signing**.
+This section describes the **checks are in place** and **how they ensure security**, split into: **secret scanning**, **code/dependency scanning** using **Github Adavanced Security**.
 
 ### 7.1 Secret Management & Secret Scanning
 
@@ -141,20 +150,12 @@ This section describes the **checks are in place** and **how they ensure securit
   with:
     args: "--no-banner --redact --verbose --exit-code 1"
 ```
-3. **TruffleHog** (alternative/extra patterns):
-```yaml
-- name: Secret scan (trufflehog)
-  uses: trufflesecurity/trufflehog@v3
-  with:
-    path: "."
-    extra_args: "--exclude_paths .gitignore --fail"
-```
 
 **Why this helps**
 - Catches **accidental secret leaks** early; **fails the build** so compromised keys don’t ship.
-- Push Protection prevents leaks from ever landing on default branches.
+- Push Protection prevents leaks from ever landing on default branches. (**not enabled for now, however added in the design**)
 
-### 7.2 Code & Dependency Security (SAST/SCA)
+### 7.2 Code & Dependency Security
 
 1. **CodeQL** (Java): Find code-level vulnerabilities (SAST).  
 ```yaml
@@ -165,13 +166,11 @@ This section describes the **checks are in place** and **how they ensure securit
 - name: Perform CodeQL Analysis
   uses: github/codeql-action/analyze@v3
 ```
-2. **Dependency Audit** (SCA): flag vulnerable libs.
-   - **Maven**: `mvn -B -ntp org.owasp:dependency-check-maven:check -DfailBuildOnCVSS=7.0`
 
 **Gating**
-- Configuration **required status checks** on `main` so PRs cannot merge unless CodeQL & SCA pass.
+- Configuration **required status checks** on `main` where if the SAST secuirty checks mentioned in the first job are not passed, build job will not trigger.
 
-### 7.3 Container Image Security
+### 7.3 OSS Container Image Security (Tested as optional workflows, but not included in the petclinic demo CI workflow)
 
 1. **Dockerfile lint** (Hadolint) — catches insecure base images and practices:
 ```yaml
@@ -182,14 +181,14 @@ This section describes the **checks are in place** and **how they ensure securit
 ```
 2. **Image vulnerability scan** (Trivy) — blocks known CVEs:
 ```yaml
-- name: Trivy scan (image)
-  uses: aquasecurity/trivy-action@0.24.0
-  with:
-    image-ref: ${{ steps.img.outputs.reg }}/${{ steps.img.outputs.ns }}/${{ matrix.name }}:sha-${{ github.sha }}
-    format: 'table'
-    vuln-type: 'os,library'
-    exit-code: '1'
-    severity: 'HIGH,CRITICAL'
+- name: Trivy scan
+  run: |
+    trivy image \
+      --scanners vuln \
+      --pkg-types os,library \
+      --severity HIGH,CRITICAL \
+      --exit-code 1 \
+      --input "${{ runner.temp }}/${{ matrix.name }}-${{ github.sha }}.tar"
 ```
 
 **Why this helps**
@@ -211,15 +210,15 @@ This section describes the **checks are in place** and **how they ensure securit
 ```
 
 **Why this helps**
-- Consumers (e.g., AKS admission controllers) can verify images were produced by **your** pipeline and **untampered**.
+- Consumers can verify images were produced by the actual **CI** pipeline and **untampered**.
 
 ---
 
 ## 8) Quality Gates & Branch Protections
 
-- **Required status checks**: CodeQL, Gitleaks, Trivy, Unit tests.
-- **Branch protection**: require PRs, code reviewer approvals, and **branch protection**.
-- **Environment protections** (if using environments): require approvals for “prod” deploys.
+- **Required status checks**: CodeQL, Gitleaks, Unit tests.
+- **Branch protection**: require PRs, code reviewer approvals, and **branch protection**. (**Must for Prod deployment, however not demonstrated in this CI workflow action**)
+- **Environment protections**: require approvals for “prod” deploys with CR. (**Must for Prod deployment, however not demonstrated in this CI workflow action**)
 - **Fail-fast policy**: make security steps fail the job on HIGH/CRITICAL findings.
 
 ---
