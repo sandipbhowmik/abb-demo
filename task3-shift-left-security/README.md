@@ -21,8 +21,11 @@ GitHub Advanced Security for secret scanning and code security analysis capabili
 ![HLD Shift Left Security](shift-left-security.png "CI/CD Security ")
 
 **Key points**
-- Triggers on `pull_request`(this is must for prod deployment; not demonstrated in this build and push pipeline),`push`.
+- Triggers on `pull_request`(this is must for prod deployment; not demonstrated in this pipeline),`push`.
 - **Self‑hosted** runner executes all scans.
+
+<img width="810" height="740" alt="image" src="https://github.com/user-attachments/assets/18f21a43-9bf6-425a-8d70-28b75cd74e0a" />
+
 
 ---
 
@@ -31,24 +34,18 @@ GitHub Advanced Security for secret scanning and code security analysis capabili
 1) **Checkout & environment prep**  
    Sets up Java/Maven (for Java repos) and any language‑specific tooling.
 
-2) **Secret scanning (CI)**  
+2) **Secret scanning**  
    - **Gitleaks**: scans repository (and optionally history) for secrets, fails on any finding.  
 
-3) **Static App Security Testing (SAST)**  
-   - **Semgrep** (OSS rules for Java): fast source analysis; annotates PRs and fails on high‑severity findings.
+3) **Static Security Testing**  
+   - **CodeQL**: fast source analysis; annotates PRs and fails on high‑severity findings.
 
-4) **Software Composition Analysis (SCA)**  
-   - **OWASP Dependency‑Check**: flags vulnerable dependencies using NVD/OSS Index; **fails** if CVSS ≥ 7.0.
-
-5) **Dockerfile hygiene (pre‑build)**  
-   - **Hadolint** to catch insecure Dockerfile practices before images are built.
-
-7) **Reporting & Gates**  
+4) **Reporting & Gates**  
    - Save reports as **Actions artifacts** (JSON/HTML/XML).  
    - Return **non‑zero exit codes** to fail the job on HIGH/CRITICAL findings.  
-   - Enforce **branch protection** so PRs cannot merge unless all required checks pass.
+   - For productio  deployments, **branch protection** to be enforced so PRs cannot merge unless all required checks pass. **In current pipeline, if any vulnerabilities or secrets are detected, the build/push job will not be triggered and ill be blocked for any deployments.**
 
 ---
 
 ## 3) Change Log
-- **v1.0** — Initial design for secret & code security scanning without GHAS.
+- **v1.0** — Initial design for secret & code security scanning with GHAS.
