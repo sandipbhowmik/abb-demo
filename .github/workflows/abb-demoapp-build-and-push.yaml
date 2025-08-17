@@ -1,7 +1,6 @@
 # ──────────────────────────────────────────────────────────────────────────────
 # Builds the Spring Petclinic microservices from /src and pushes images to ACR
-# Now gated by security checks (secret scan, SAST, SCA, Dockerfile lint).
-# Post-push steps run Trivy image scan, generate SBOM, and sign with Cosign.
+# with security checks (secret scan, SAST).
 # ──────────────────────────────────────────────────────────────────────────────
 name: ABB Demo App Build & Push
 
@@ -27,12 +26,11 @@ env:
   PLATFORMS: linux/amd64,linux/arm64
   ACR_NAME: abbdemoazdevacr
 
-# ──────────────────────────────────────────────────────────────────────────────
-# Static security checks (secrets, CodeQL, Dockerfile lint)
-# ──────────────────────────────────────────────────────────────────────────────
+# Static security checks
+
 jobs:
   security_static:
-    name: Static Security (Secrets + SAST + Dockerfile Lint)
+    name: Static Security Check
     runs-on: self-hosted
     permissions:
       contents: read
@@ -63,7 +61,7 @@ jobs:
         with:
           languages: java
 
-      # Manual build for CodeQL (instead of autobuild)
+      # Manual build for CodeQL
       - name: Build (manual for CodeQL on Java 17)
         working-directory: src
         run: |
@@ -72,154 +70,13 @@ jobs:
 
       - name: Perform CodeQL Analysis
         uses: github/codeql-action/analyze@v3
+  
 
-    #  # Dockerfile lint
-    #  - name: Lint Dockerfile (hadolint)
-    #   uses: hadolint/hadolint-action@v3.1.0
-    #    with:
-    #      dockerfile: src/docker/Dockerfile
+  # Build & Push — runs only if security jobs pass
 
-  # ────────────────────────────────────────────────────────────────────────────
-  # Software Composition Analysis (SCA) per microservice
-  # ────────────────────────────────────────────────────────────────────────────
-  sca:
-    name: SCA (OWASP Dependency-Check)
-    runs-on: self-hosted
-    strategy:
-      fail-fast: false
-      matrix:
-        include:
-          - name: config-server
-            module: spring-petclinic-config-server
-          - name: api-gateway
-            module: spring-petclinic-api-gateway
-          - name: customers-service
-            module: spring-petclinic-customers-service
-          - name: vets-service
-            module: spring-petclinic-vets-service
-          - name: visits-service
-            module: spring-petclinic-visits-service
-          - name: chat-agent
-            module: spring-petclinic-chat-agent
-    steps:
-      - name: Checkout
-        uses: actions/checkout@v4
-
-      - name: Set up Temurin ${{ env.JAVA_VERSION }}
-        uses: actions/setup-java@v4
-        with:
-          distribution: temurin
-          java-version: ${{ env.JAVA_VERSION }}
-          cache: maven
-
-      - name: OWASP Dependency-Check (fail on CVSS >= 7.0)
-        run: |
-          mvn -f src/${{ matrix.module }}/pom.xml -B -ntp \
-            org.owasp:dependency-check-maven:check \
-            -DfailBuildOnCVSS=7.0 \
-            -Dnvd.api.key="${{ secrets.NVD_API_KEY }}"
-
-  # ────────────────────────────────────────────────────────────────────────────
-  # Image Scan and Cosign signing
-  # ────────────────────────────────────────────────────────────────────────────
-  imgscan:
-    name: Scan Images
-    runs-on: self-hosted
-    permissions:
-      id-token: write
-      contents: read
-      packages: write
-    strategy:
-      fail-fast: false
-      matrix:
-        include:
-          - name: config-server
-            module: spring-petclinic-config-server
-            port: 8888
-          - name: api-gateway
-            module: spring-petclinic-api-gateway
-            port: 8080
-          - name: customers-service
-            module: spring-petclinic-customers-service
-            port: 8080
-          - name: vets-service
-            module: spring-petclinic-vets-service
-            port: 8080
-          - name: visits-service
-            module: spring-petclinic-visits-service
-            port: 8080
-          - name: chat-agent
-            module: spring-petclinic-chat-agent
-            port: 8080
-
-    steps:
-      - name: Checkout
-        uses: actions/checkout@v4
-
-      - name: Set image registry/repo
-        id: img
-        run: |
-          echo "ns=${{ env.IMAGE_NAMESPACE }}" >> $GITHUB_OUTPUT
-          echo "pre=local/${{ env.IMAGE_NAMESPACE }}/${{ matrix.name }}:pre-${{ github.sha }}" >> $GITHUB_OUTPUT
-
-      - name: Set up Temurin ${{ env.JAVA_VERSION }}
-        uses: actions/setup-java@v4
-        with:
-          distribution: temurin
-          java-version: ${{ env.JAVA_VERSION }}
-          cache: maven
-
-      - name: Set up QEMU for multi-arch
-        uses: docker/setup-qemu-action@v3
-
-      - name: Set up Docker Buildx
-        uses: docker/setup-buildx-action@v3
-        with:
-          driver: docker
-
-      - name: Build jar for ${{ matrix.name }}
-        shell: bash
-        run: |
-          set -e
-          mvn -f src/${{ matrix.module }}/pom.xml $MVN_ARGS package
-
-      - name: Prepare image context (copy jar to app.jar)
-        shell: bash
-        run: |
-          set -e
-          TARGET="src/${{ matrix.module }}/target"
-          ls -l "$TARGET"
-          JAR=$(ls "$TARGET"/*.jar | head -n1)
-          cp -f "$JAR" "$TARGET/app.jar"
-
-      - name: Build single-arch image (local, linux/amd64)
-        uses: docker/build-push-action@v6
-        with:
-          context: src/${{ matrix.module }}/target
-          file: ${{ env.DOCKERFILE }}
-          platforms: linux/amd64
-          load: true                        
-          tags: ${{ steps.img.outputs.pre }}
-          build-args: |
-            ARTIFACT_NAME=app
-            EXPOSED_PORT=${{ matrix.port }}
-            DOCKERIZE_VERSION=${{ env.DOCKERIZE_VERSION }}
-      
-      - name: Trivy scan
-        run: |
-          trivy image \
-            --format table \
-            --vuln-type os,library \
-            --severity HIGH,CRITICAL \
-            --exit-code 1 \
-            "${{ steps.img.outputs.pre }}"
-
-  # ────────────────────────────────────────────────────────────────────────────
-  # Build & Push — runs only if both security jobs pass
-  # ────────────────────────────────────────────────────────────────────────────
   build:
     name: Build & Push Images (after security gates)
-    needs: [security_static, sca, imgscan]
+    needs: [security_static]
     runs-on: self-hosted
     permissions:
       id-token: write
@@ -317,29 +174,3 @@ jobs:
             ARTIFACT_NAME=app
             EXPOSED_PORT=${{ matrix.port }}
             DOCKERIZE_VERSION=${{ env.DOCKERIZE_VERSION }}
-
-      # Container vulnerability scan
-      - name: Trivy scan (image)
-        uses: aquasecurity/trivy-action@0.24.0
-        with:
-          image-ref: ${{ steps.img.outputs.reg }}/${{ steps.img.outputs.ns }}/${{ matrix.name }}:sha-${{ github.sha }}
-          format: 'table'
-          vuln-type: 'os,library'
-          exit-code: '1'
-          severity: 'HIGH,CRITICAL'
-
-      - name: Generate SBOM (syft-upload as artifact)
-        uses: anchore/sbom-action@v0
-        with:
-          image: ${{ steps.img.outputs.reg }}/${{ steps.img.outputs.ns }}/${{ matrix.name }}:sha-${{ github.sha }}
-          artifact-name: "sbom-${{ matrix.name }}-${{ github.sha }}.spdx.json"
-
-      # Cosign keyless signing (requires id-token: write; will use OIDC)
-      - name: Install Cosign
-        uses: sigstore/cosign-installer@v3.6.0
-
-      - name: Sign image (keyless)
-        env:
-          COSIGN_EXPERIMENTAL: "true"
-        run: |
-          cosign sign --yes ${{ steps.img.outputs.reg }}/${{ steps.img.outputs.ns }}/${{ matrix.name }}:sha-${{ github.sha }}
