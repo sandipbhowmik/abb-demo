@@ -17,7 +17,6 @@ config:
   exporters:
     azuremonitor:
       connection_string: "InstrumentationKey=20ff652e-3ce4-4811-95cb-50bba11f8a8b;IngestionEndpoint=https://centralus.ingestion.monitor.azure.com/"
-      #instrumentation_key: "20ff652e-3ce4-4811-95cb-50bba11f8a8b"
       endpoint: "https://dc.services.visualstudio.com/v2/track"
     #otlp/azure:
     #  endpoint: "https://otlp.monitor.azure.com:4317"
