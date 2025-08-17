@@ -1,6 +1,6 @@
 # PetClinic on Azure — Infrastructure Architecture
 
-> **Scope:** This README describes the target architecture that is provisioned by the Terraform codebase (`tf-az-infraprovison`). It covers Azure resources, networking, identity & RBAC, security, scalability etc. All names are parameterized by `var.name_prefix` unless otherwise stated.
+> **Scope:** This document describes the target architecture that is provisioned by the Terraform codebase (`tf-az-infraprovison`). The reference taken from https://github.com/Azure-Samples/java-on-aca where it used Azure Container Apps. This project covers Azure resources, networking, identity & RBAC, security, scalability etc. All names are parameterized by `var.name_prefix` unless otherwise stated.
 
 > **Note:** The design below reflects the intended state encoded in Terraform.  Reference Azure Sample Project - https://github.com/Azure-Samples/java-on-aca
 
