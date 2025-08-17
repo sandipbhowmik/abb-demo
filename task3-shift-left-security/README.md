@@ -1,6 +1,6 @@
 # Secrets Scanning & Code Security
 
-> **Scope:** This documents describes the **secret scanning** and **code security analysis** implemented in the CI/Build action workflow. It is designed for **public repos with GitHub Advanced Security (GHAS)** which uses scanners and gates to block risky changes.
+> **Scope:** This documents describes the **secret scanning** and **code security analysis** implemented in the CI/Build action workflow. It is designed with the usage of **GitHub Advanced Security (GHAS)** which uses scanners and gates to block risky changes.
 
 ---
 
