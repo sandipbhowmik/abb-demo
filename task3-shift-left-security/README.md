@@ -1,18 +1,18 @@
 # Secrets Scanning & Code Security
 
-> **Scope:** This README documents how the **secret scanning** and **code security analysis** implemented in the CI/Build action workflow. It is designed for **private repos without GitHub Advanced Security (GHAS)** and uses open‑source scanners and gates to block risky changes.
+> **Scope:** This documents describes the **secret scanning** and **code security analysis** implemented in the CI/Build action workflow. It is designed for **public repos with GitHub Advanced Security (GHAS)** which uses scanners and gates to block risky changes.
 
 ---
 
 ## GitHub Advanced Security
 
-GitHub Advanced Security for secret scanning and code security analysis capabilities **require purchase** of GitHub’s Advanced Security products:
+GitHub Advanced Security for secret scanning and code security analysis capabilities:
 
 - **GitHub Secret Protection** — features to help detect and prevent secret leaks, such as **secret scanning** and **push protection**.
 - **GitHub Code Security** — features to help find and fix vulnerabilities, like **code scanning**, **premium Dependabot features**, and **dependency review**.
-- GitHub makes **extra security features** available to customers who purchase GitHub Code Security or GitHub Secret Protection. **GitHub Code Security** and **GitHub Secret Protection** are available for accounts on **GitHub Team** and **GitHub Enterprise Cloud**.
+- GitHub makes **extra security features** available to customers who purchase GitHub Code Security or GitHub Secret Protection.
 
-> **Hence**, considering the above point, this CI pipeline is designed to operate **without GitHub’s Advanced Security products**. The equivalent coverage can be implemented using open‑source tools and branch protections.
+> **Please note, **GitHub’s Advanced Security products i.e secret scanning and code security analysis for private repo can't be enabled until license is purchased. However, the equivalent coverage can be implemented using open‑source tools and branch protections for private repos.**
 
 ---
 
@@ -21,7 +21,7 @@ GitHub Advanced Security for secret scanning and code security analysis capabili
 ![HLD Shift Left Security](shift-left-security.png "CI/CD Security ")
 
 **Key points**
-- Triggers on `pull_request`,`push`.
+- Triggers on `pull_request`(this is must for prod deployment; not demonstrated in this build and push pipeline),`push`.
 - **Self‑hosted** runner executes all scans.
 
 ---
