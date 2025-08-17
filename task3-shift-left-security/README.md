@@ -55,6 +55,8 @@ GitHub Advanced Security for secret scanning and code security analysis capabili
 
 ## 3) Security Configuration
 
+- Below demonstrates the use of GitHub Advanced Security for secret scanning and code security analysis in the actions workflow.
+
 ```
 yaml
 
@@ -67,7 +69,7 @@ jobs:
     permissions:
       contents: read
       actions: read
-      security-events: write   # required for CodeQL
+      security-events: write
       id-token: write
     steps:
       - name: Checkout
@@ -103,7 +105,7 @@ jobs:
       - name: Perform CodeQL Analysis
         uses: github/codeql-action/analyze@v3
 ```
-
+---
 
 ## 3) Change Log
 - **v1.0** — Initial design for secret & code security scanning with GHAS.
