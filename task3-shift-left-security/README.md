@@ -57,8 +57,7 @@ GitHub Advanced Security for secret scanning and code security analysis capabili
 
 - Below demonstrates the use of GitHub Advanced Security for secret scanning and code security analysis in the actions workflow.
 
-```
-yaml
+```yaml
 
 # Static security checks
 
