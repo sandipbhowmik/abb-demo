@@ -32,24 +32,24 @@ GitHub Advanced Security for secret scanning and code security analysis capabili
 
 ---
 
-## 2) Pipeline Stages & Gates
+## 2) Security Checks & Gates (implementation and controls)
 
-1) **Checkout & environment prep**  
-   Sets up Java/Maven (for Java repos) and any language‑specific tooling.
+1) Static Security Check job (`security_static`) runs **first** on a self-hosted runner and includes:
 
-2) **Secret scanning**
- 
-   - **Gitleaks**: scans repository (and optionally history) for secrets, fails on any finding. 
-  
-   <img width="956" height="740" alt="image" src="https://github.com/user-attachments/assets/9c9237f3-bd8f-4ede-a473-ccecb7778795" />
+   - **Secret scanning – Gitleaks:** executed with `--exit-code 1` so any detected secret fails the job. 
+   - **SAST – CodeQL (Java):** initializes, performs a Maven build on Java 17, and runs analysis; results are uploaded to GitHub Code Scanning using `security-events: write.`
 
+2) **Gating:** The Build & Push job declares `needs: [security_static]`, so container images are **not built or pushed** unless the security job completes successfully.
 
-4) **Static Security Testing**  
-   - **CodeQL**: fast source analysis; annotates PRs and fails on high‑severity findings.
+3) **Cloud auth:** The pipeline uses `permissions: id-token: write` and `azure/login@v2` to obtain a short-lived token, then `az acr login` to push images to `abbdemoazdevacr.azurecr.io`. No registry passwords or static cloud keys are stored in the workflow.
 
-5) **Reporting & Gates**  
+4) **Reporting & Gates**  
    - Return **non‑zero exit codes** to fail the job on HIGH/CRITICAL findings.  
    - For productio  deployments, **branch protection** to be enforced so PRs cannot merge unless all required checks pass. **In current pipeline, if any vulnerabilities or secrets are detected, the build/push job will not be triggered and it will be blocked for any deployments.**
+  
+5) **Secrets exposure (hard fail):** Gitleaks scans the repo; any match results in a failed job and the pipeline stops before build/push. Evidence is in job logs; maintainers must triage and fix the alert/issue.
+
+6) **Source-code vulnerabilities (SAST):** CodeQL analyzes the Java codebase and uploads alerts to GitHub’s Code Scanning. The job itself succeeds if analysis completes, but the build is still gated behind security_static. We recommend marking CodeQL as a required status check on the default branch so PRs cannot merge while unresolved alerts exist.
 
 ---
 
