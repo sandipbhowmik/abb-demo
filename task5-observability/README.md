@@ -7,6 +7,9 @@
 
 ## 1) High Level Architecture
 
+<img width="2049" height="1094" alt="image" src="https://github.com/user-attachments/assets/8600aac4-7a2d-4835-b7b7-585b58f0c1bd" />
+
+
 - **Instrumented workloads** running on AKS emit telemetry (OTLP format, Port 4317)
 - Telemetry is sent to an **OpenTelemetry Collector Deployment** inside the cluster
 - Collector pipelines receive OTLP traces/logs/metrics → batch process → export to Azure
