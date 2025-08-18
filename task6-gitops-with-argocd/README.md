@@ -14,6 +14,7 @@ Argo CD automates the deployment of the desired application states in the specif
 
 <img width="2642" height="603" alt="image" src="https://github.com/user-attachments/assets/acab302d-b781-4448-9e84-0d02f75136b6" />
 
+
 **ArgoCD Dashboard:**
 
 <img width="1301" height="743" alt="image" src="https://github.com/user-attachments/assets/c247c222-25b1-4403-bd33-13dc41751843" />
