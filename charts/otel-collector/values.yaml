@@ -1,6 +1,9 @@
 workloadIdentity:
   clientId: "2083f38f-820b-4293-b728-e92e90fc0024"
 
+azureMonitor:
+  instrumentationKey: ""
+
 mode: deployment
 image:
   repository: otel/opentelemetry-collector-contrib
@@ -16,7 +19,7 @@ config:
     batch: {}
   exporters:
     azuremonitor:
-      connection_string: "InstrumentationKey=20ff652e-3ce4-4811-95cb-50bba11f8a8b;IngestionEndpoint=https://centralus.ingestion.monitor.azure.com/"
+      connection_string: "InstrumentationKey={{ .Values.azureMonitor.instrumentationKey }};IngestionEndpoint=https://centralus.ingestion.monitor.azure.com/"
       endpoint: "https://dc.services.visualstudio.com/v2/track"
     #otlp/azure:
     #  endpoint: "https://otlp.monitor.azure.com:4317"
