@@ -8,7 +8,8 @@
 
 ## 1) Github Actions High Level Flow
 
-![Solution architecture](github-actions-workflow-diagram.png "Github Actions High Level Flow")
+<img width="4649" height="1300" alt="image" src="https://github.com/user-attachments/assets/a62984a7-58cb-4a5e-a1fe-b47ed632e9b6" />
+
 
 **Key properties**
 - **Runner:** `self-hosted` (requires Docker + Buildx, QEMU, Java 17, Maven, Azure CLI).
