@@ -117,7 +117,7 @@ on:
   run: mvn -B -ntp -DskipITs test
 ```
 
-- Optionally added **integration tests** to run before building images:
+- Added **integration tests** to run before building images:
 ```yaml
 - name: Run integration tests
   run: mvn -B -ntp -DskipUnitTests verify -Pintegration-tests
@@ -171,11 +171,11 @@ This section describes the **checks are in place** and **how they ensure securit
 **Gating**
 - Configuration **required status checks** on `main` where if the SAST secuirty checks mentioned in the first job are not passed, build job will not trigger.
 
-### 7.3 OSS Container Image Security (Tested as optional workflow, but not included in the petclinic demo CI workflow)
+### 7.3 OSS Container Image Security (Tested as optional workflow, but not included in the petclinic demo CI workflow `abb-demoapp-build-and-push.yaml`)
 
 1. **Dockerfile lint** (Hadolint) — catches insecure base images and practices:
 ```yaml
-- name: Lint Dockerfile (hadolint)
+- name: Lint Dockerfile
   uses: hadolint/hadolint-action@v3.1.0
   with:
     dockerfile: src/docker/Dockerfile
@@ -195,9 +195,8 @@ This section describes the **checks are in place** and **how they ensure securit
 **Why this helps**
 - Prevents shipping images with **HIGH/CRITICAL CVEs**.
 
-### 7.4 Signing (Tested as optional workflow, but not included in the petclinic demo CI workflow)
+### 7.4 Signing (Tested as optional workflow, but not included in the petclinic demo CI workflow `abb-demoapp-build-and-push.yaml`)
 
-**Recommendation**
 - **Cosign keyless signing** using GitHub OIDC; store signatures alongside images in ACR.
 ```yaml
 - name: Install Cosign
@@ -217,14 +216,14 @@ This section describes the **checks are in place** and **how they ensure securit
 
 ## 8) Quality Gates & Branch Protections
 
-- **Required status checks**: CodeQL, Gitleaks, Unit tests.
+- **Required status checks**: CodeQL, Gitleaks, Unit tests. (**Already in place**)
 - **Branch protection**: require PRs, code reviewer approvals, and **branch protection**. (**Must for Prod deployment, however not demonstrated in this CI workflow action**)
 - **Environment protections**: require approvals for “prod” deploys with CR. (**Must for Prod deployment, however not demonstrated in this CI workflow action**)
-- **Fail-fast policy**: make security steps fail the job on HIGH/CRITICAL findings.
+- **Fail-fast policy**: make security steps fail the job on HIGH/CRITICAL findings. (**Already in place**)
 
 ---
 
-## 9) Runner Requirements
+## 9) Github Action Runner Requirements
 
 Ensure the self-hosted runner has:
 - Docker 24+ with Buildx; QEMU emulation
