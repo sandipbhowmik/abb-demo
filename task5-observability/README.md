@@ -23,6 +23,8 @@
 
 ## 2) Components Involved
 
+- Below are the components which are used in this observability requirement.
+
 | Component                               | Purpose                                                  |
 |----------------------------------------|----------------------------------------------------------|
 | OpenTelemetry Collector Deployment     | Runs inside AKS, hosts OTLP receiver and Azure exporter  |
@@ -36,7 +38,7 @@
 
 ## 3) Implementation Steps
 
-### 1. 1. Enable Azure Workload Identity on AKS
+### 1. Enable Azure Workload Identity on AKS
 
 - Allows Kubernetes service accounts to authenticate as Azure AD identities. This enables to have the Collector pod assume a Managed Identity, eliminating the need to store service principals or secrets.
 
@@ -120,8 +122,6 @@ charts/
         ├─ deployment.yaml
         ├─ service.yaml
         └─ configmap.yaml
-docs/
-└─ README.md  (this file)
 ```
 
 - It Uses OpenTelemetry protocol (OTLP) receiver – cloud-native input protocol for traces, metrics, logs
@@ -159,3 +159,18 @@ service:
 ```
 
 ---
+
+## 6) What Telemetry is Captured?
+
+- The below table depicts all the telemetries which are being captured part of this observability
+
+| Signal      | Captured From                                                  | Exported To                                                                                   |
+| ----------- | -------------------------------------------------------------- | --------------------------------------------------------------------------------------------- |
+| **Traces**  | Incoming HTTP requests, spans from instrumented applications   | Application Insights → “Transactions”, “Application Map”, “Logs (AppTraces, AppDependencies)” |
+| **Metrics** | Application runtime metrics via OTLP (duration, request count) | Azure Monitor → Metrics blade (“Custom Metrics” namespace)                                    |
+| **Logs**    | Application spans & traces with message events                 | Azure Monitor Logs (Kusto tables: `AppTraces`, `AppDependencies`)                            |
+
+---
+
+## 7) Viewing Telemetry in Azure
+
