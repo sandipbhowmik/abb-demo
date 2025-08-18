@@ -21,7 +21,14 @@ The PetClinic application is deployed on **Azure Kubernetes Service (AKS)** and 
 
 ### 2.1 Logical Architecture
 
-![Logical architecture for PetClinic on Azure](iac-diagram.png "PetClinic logical architecture")
+<img width="3571" height="2075" alt="image" src="https://github.com/user-attachments/assets/d256e533-1147-42fd-be0e-654d651dbf01" />
+
+
+**Once created, all the resources can be viewed under the resource group**
+
+
+<img width="989" height="749" alt="image" src="https://github.com/user-attachments/assets/c742ddab-0995-4fdd-8336-369f6ef589b4" />
+
 
 ### 2.2 Network Topology
 
