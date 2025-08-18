@@ -4,7 +4,7 @@ This document explains how **Argo CD** automates deployments of kubenetes manife
 
 ---
 
-## 1) Overview
+## 1) Overview and Architecture
 
 Argo CD is a declarative, GitOps continuous delivery tool for Kubernetes. Argo CD follows the GitOps pattern of using Git repositories as the source of truth for defining the desired application state.
 
@@ -13,6 +13,8 @@ Argo CD automates the deployment of the desired application states in the specif
 **High Level GitOps Flow:**
 
 ![ArgoCD](argocd-gitops.png "GitOPS ")
+
+<img width="1301" height="743" alt="image" src="https://github.com/user-attachments/assets/c247c222-25b1-4403-bd33-13dc41751843" />
 
 **ArgoCD helps with:**
 - **Continuous deployment (CD)**: watches Git repository for changes to the **Helm chart** and **values**; on change, **renders** and **syncs** to the kubernetes cluster.
@@ -76,6 +78,8 @@ Expose the Argo CD API/UI:
 - (Optional) Name: a friendly name for the repo
 - Click Connect. You should see the repo show up with a green/“successful” status.
 
+<img width="1303" height="277" alt="image" src="https://github.com/user-attachments/assets/137d1f6f-f647-4f1e-ad2f-ef748540dffe" />
+
 > Scope the PAT to **read-only** repository access with below permissions:
 
 - **Content:** Repository contents, commits, branches, downloads, releases, and merges (aceess to be enabled)
@@ -107,6 +111,8 @@ image:
 **Polling (default):** Argo CD periodically polls repos and detects new commits.
 
 With **Automated Sync** enabled, Argo CD applies the new manifests as soon as the change is detected.
+
+<img width="1072" height="706" alt="image" src="https://github.com/user-attachments/assets/05c01a58-5576-405d-9b66-a1d472a73d89" />
 
 ---
 
