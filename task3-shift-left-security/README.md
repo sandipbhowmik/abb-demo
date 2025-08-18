@@ -18,7 +18,7 @@ GitHub Advanced Security for secret scanning and code security analysis capabili
 
 ## 1) High‑Level Architecture
 
-![HLD Shift Left Security](shift-left-security.png "CI/CD Security ")
+<img width="2611" height="1441" alt="image" src="https://github.com/user-attachments/assets/be204350-3285-4822-a6a0-40d5e422d7ab" />
 
 **Key points**
 - Triggers on `pull_request`(this is must for prod deployment; not demonstrated in this pipeline),`push`.
@@ -26,7 +26,7 @@ GitHub Advanced Security for secret scanning and code security analysis capabili
 
 ## Below options will be visible once GitHub Advanced Security enabled and respective options turned on accordingly.
 
-<img width="2611" height="1441" alt="image" src="https://github.com/user-attachments/assets/aa8e530e-f964-4b0b-b3a0-a81d0493b0f0" />
+<img width="956" height="740" alt="image" src="https://github.com/user-attachments/assets/952fbec9-5693-46a1-84df-f28665f863be" />
 
 ---
 
