@@ -24,11 +24,9 @@ GitHub Advanced Security for secret scanning and code security analysis capabili
 - Triggers on `pull_request`(this is must for prod deployment; not demonstrated in this pipeline),`push`.
 - **Self‑hosted** runner executes all scans.
 
-## Below options will be visible once GitHub Advanced Security enabled and respective options to be turned on accordingly.
+## Below options will be visible once GitHub Advanced Security enabled and respective options turned on accordingly.
 
-
-<img width="810" height="740" alt="image" src="https://github.com/user-attachments/assets/18f21a43-9bf6-425a-8d70-28b75cd74e0a" />
-
+<img width="2611" height="1441" alt="image" src="https://github.com/user-attachments/assets/aa8e530e-f964-4b0b-b3a0-a81d0493b0f0" />
 
 ---
 
@@ -47,9 +45,9 @@ GitHub Advanced Security for secret scanning and code security analysis capabili
    - Return **non‑zero exit codes** to fail the job on HIGH/CRITICAL findings.  
    - For productio  deployments, **branch protection** to be enforced so PRs cannot merge unless all required checks pass. **In current pipeline, if any vulnerabilities or secrets are detected, the build/push job will not be triggered and it will be blocked for any deployments.**
   
-5) **Secrets exposure (hard fail):** Gitleaks scans the repo; any match results in a failed job and the pipeline stops before build/push. Evidence is in job logs; maintainers must triage and fix the alert/issue.
+5) **Secrets exposure (hard fail):** Gitleaks scans the repo for any open secrets; any match results in a failed job and the pipeline stops before build/push. Evidence is in job logs; maintainers must triage and fix the alert/issue.
 
-6) **Source-code vulnerabilities (SAST):** CodeQL analyzes the Java codebase and uploads alerts to GitHub’s Code Scanning. The job itself succeeds if analysis completes, but the build is still gated behind security_static. We recommend marking CodeQL as a required status check on the default branch so PRs cannot merge while unresolved alerts exist.
+6) **Source-code vulnerabilities (SAST):** CodeQL analyzes the Java codebase and uploads alerts to GitHub’s Code Scanning. The job itself succeeds if analysis completes, but the build is still gated behind security_static.
 
 ---
 
