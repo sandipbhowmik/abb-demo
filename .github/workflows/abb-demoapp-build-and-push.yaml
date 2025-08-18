@@ -70,13 +70,70 @@ jobs:
 
       - name: Perform CodeQL Analysis
         uses: github/codeql-action/analyze@v3
-  
 
-  # Build & Push — runs only if security jobs pass
+# Run Unit Test and Integration Test
+
+  unit_and_it:
+    name: "Unit & IT — ${{ matrix.name }}"
+    runs-on: self-hosted
+    permissions:
+      id-token: write
+      contents: read
+      packages: write
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - name: config-server
+            module: spring-petclinic-config-server
+            port: 8888
+          - name: api-gateway
+            module: spring-petclinic-api-gateway
+            port: 8081
+          - name: customers-service
+            module: spring-petclinic-customers-service
+            port: 8082
+          - name: vets-service
+            module: spring-petclinic-vets-service
+            port: 8083
+          - name: visits-service
+            module: spring-petclinic-visits-service
+            port: 8084
+          - name: chat-agent
+            module: spring-petclinic-chat-agent
+            port: 8085
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Set up Temurin ${{ env.JAVA_VERSION }}
+        uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: ${{ env.JAVA_VERSION }}
+          cache: maven
+      
+      - name: Unit tests — ${{ matrix.name }}
+        shell: bash
+        run: |
+          set -e
+          mvn -B -ntp -DskipITs test -f src/${{ matrix.module }}/pom.xml
+      
+      - name: Integration tests — ${{ matrix.name }}
+        env:
+          SERVER_PORT: ${{ matrix.port }}
+        shell: bash
+        run: |
+          set -e
+          mvn -B -ntp -DskipUnitTests verify -Pintegration-tests -f src/${{ matrix.module }}/pom.xml
+
+
+# Build & Push — runs only if security jobs pass
 
   build:
     name: Build & Push Images (after security gates)
-    needs: [security_static]
+    needs: [security_static, unit_and_it]
     runs-on: self-hosted
     permissions:
       id-token: write
