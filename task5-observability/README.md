@@ -15,5 +15,5 @@
 - Collector pipelines receive OTLP traces/logs/metrics → batch process → export to Azure
 - The collector uses a **User-Assigned Managed Identity**, federated via **Workload Identity**, to authenticate securely to Azure without secrets
 - Exported telemetry is ingested into:
-        -  **Application Insights**(traces, dependencies, live metrics, logs)
-        -  **Azure Monitor Metrics & Logs**
+        **Application Insights**(traces, dependencies, live metrics, logs)
+        **Azure Monitor Metrics & Logs**
