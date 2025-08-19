@@ -66,7 +66,7 @@ module "mysql_dns_zone" {
 
 # AKS
 module "aks" {
-  source                     = "./modules/containerapps/_replaced-with-aks"
+  source                     = "./modules/container/aks"
   location                   = var.location
   rg_name                    = azurerm_resource_group.rg.name
   name_prefix                = var.name_prefix
@@ -115,7 +115,7 @@ module "mysql" {
 
 # Workload Identity for Key Vault CSI
 module "workload_identity" {
-  source              = "./modules/aks/workload-identity"
+  source              = "./modules/aad/workload-identity"
   name_prefix         = var.name_prefix
   resource_group_name = azurerm_resource_group.rg.name
   location            = azurerm_resource_group.rg.location
