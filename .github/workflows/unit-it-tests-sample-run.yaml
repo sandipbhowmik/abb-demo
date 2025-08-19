@@ -1,4 +1,4 @@
-name: Unit and Integration Smoke Test Workflow
+name: Unit, Integration Smoke Test Workflow
 
 on:
   push:
