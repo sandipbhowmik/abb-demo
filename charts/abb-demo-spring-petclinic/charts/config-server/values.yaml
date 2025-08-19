@@ -1,0 +1,4 @@
+replicaCount: 2
+image:
+  repository: abbdemoazdevacr.azurecr.io/demo-petclinic-app/config-server
+  tag: latest

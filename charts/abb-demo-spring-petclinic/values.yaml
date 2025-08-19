@@ -1,0 +1,11 @@
+global:
+  acr: abbdemoazdevacr.azurecr.io
+  namespace: abb-demo-spring-petclinic
+  workloadIdentity:
+    clientId: 2083f38f-820b-4293-b728-e92e90fc0024
+    tenantId: 43de930b-4e93-4a84-8fd4-88735f81eb66
+  azureKeyVault:
+    name: <KV_NAME>
+    secrets:
+      username: mysql-admin-login
+      password: mysql-admin-password
