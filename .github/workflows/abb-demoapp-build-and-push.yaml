@@ -2,7 +2,7 @@
 # Builds the Spring Petclinic microservices from /src and pushes images to ACR
 # with security checks (secret scan, SAST).
 # ──────────────────────────────────────────────────────────────────────────────
-name: ABB Demo App Build & Push
+name: ABB Demo App Build with SAST
 
 on:
   push:
