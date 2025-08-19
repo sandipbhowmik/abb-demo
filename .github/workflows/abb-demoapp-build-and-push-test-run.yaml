@@ -1,4 +1,4 @@
-name: ABB Demo App Build with Security - Test Workflow
+name: ABB Demo App Build - Test Workflow
  
 on:
   push:
