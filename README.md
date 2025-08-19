@@ -2,6 +2,8 @@
 
 A cloud-native reference implementation of the **Spring Pet Clinic microservices application** deployed to **Azure Kubernetes Service**, demonstrating a complete **DevSecOps workflow** powered by modern tooling such as **Terraform, GitHub Actions, Argo CD, CodeQL, and OpenTelemetry**.
 
+**Note:** The project is built based on the reference project outlined here `https://github.com/Azure-Samples/java-on-aca`.
+
 ---
 
 ## Key Features
@@ -23,7 +25,7 @@ A cloud-native reference implementation of the **Spring Pet Clinic microservices
 
 ---
 
-## 🔧 Technology Stack
+## Technology Stack
 
 | Layer               | Tools Used                                                    |
 |--------------------|---------------------------------------------------------------|
@@ -34,12 +36,3 @@ A cloud-native reference implementation of the **Spring Pet Clinic microservices
 | Security Scanning   | Gitleaks, CodeQL (GitHub Advanced Security) |
 | Monitoring          | OpenTelemetry, Azure Monitor, App Insights                    |
 | App Framework       | Java Spring Boot Microservices                                |
-
----
-
-## 🛠️ How to Deploy
-
-1. **Clone the Repository**
-   ```bash
-   git clone <repo>
-   cd abb-demo-main
