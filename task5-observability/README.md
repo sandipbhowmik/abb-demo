@@ -174,3 +174,19 @@ service:
 
 ## 7) Viewing Telemetry in Azure
 
+**Application Insights**
+
+- Search / Transactions → see trace spans
+- Application Map → visualize services
+- Logs (Kusto)
+
+**Azure Monitor Metrics**
+
+- Metrics → “CustomMetrics” namespace → e.g. request.duration
+
+**Azure Monitor Logs**
+
+---
+
+## 8) Change Log
+- v1.0 — Initial README for Observability Setup using OpneTelemetry.
