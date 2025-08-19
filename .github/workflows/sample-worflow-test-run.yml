@@ -1,4 +1,4 @@
-name: Build & Push to ACR
+name: Sample Build Workflow
 
 on:
   push:

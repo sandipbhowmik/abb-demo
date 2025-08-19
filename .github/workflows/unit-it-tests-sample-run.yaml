@@ -1,7 +1,4 @@
-# ──────────────────────────────────────────────────────────────────────────────
-# Unit and Integration Smoke Test
-# ──────────────────────────────────────────────────────────────────────────────
-name: Unit and Integration Smoke Test
+name: Unit and Integration Smoke Test Workflow
 
 on:
   push:

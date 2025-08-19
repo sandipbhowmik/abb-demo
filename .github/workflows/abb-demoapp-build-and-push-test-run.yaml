@@ -1,10 +1,5 @@
-# ──────────────────────────────────────────────────────────────────────────────
-# Builds the Spring Petclinic microservices from /src and pushes images to ACR
-# with security checks (secret scan, SAST, SCA, Dockerfile lint, Trivy image scan,
-# generate SBOM, and sign with Cosign.)
-# ──────────────────────────────────────────────────────────────────────────────
-name: ABB Demo App Build & Push
-
+name: ABB Demo App Build with Security Checks - Test Workflow
+ 
 on:
   push:
     branches: [ main, master ]
