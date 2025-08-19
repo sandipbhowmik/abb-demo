@@ -1,4 +1,4 @@
-name: Unit, Integration - Test Workflow
+name: Unit and Integration - Test Workflow
 
 on:
   push:
