@@ -1,11 +1,55 @@
+# -------------------------------------------------------------------
+# Global Values Applied Across All Microservices
+# -------------------------------------------------------------------
+
 global:
-  acr: abbdemoazdevacr.azurecr.io
+  acr: abbdemoazdevacr.azurecr.io              
+  imageNamespace: demo-petclinic-app           
+  imageTag: latest                             
+
+  # K8s Namespace
   namespace: abb-demo-spring-petclinic
+
+  # UAMI used by AKS Workload Identity
   workloadIdentity:
     clientId: 2083f38f-820b-4293-b728-e92e90fc0024
     tenantId: 43de930b-4e93-4a84-8fd4-88735f81eb66
+    uamiName: abb-demo-az-dev-wi
+
+  # Azure KV integration via CSI Driver
   azureKeyVault:
-    name: <KV_NAME>
+    name: abbdemoazdevkv                      
     secrets:
-      username: mysql-admin-login
-      password: mysql-admin-password
+      username: mysql-admin-login             
+      password: mysql-admin-password          
+
+  
+  mysql:
+    database: petclinic                       
+    hostname: abb-demo-az-dev-mysql.mysql.database.azure.com
+    port: 3306
+
+hpa:
+  enabled: true
+  minReplicas: 2
+  maxReplicas: 5
+  targetCPUUtilizationPercentage: 70
+
+config-server:
+  enabled: true
+
+api-gateway:
+  enabled: true
+
+customers-service:
+  enabled: true
+
+vets-service:
+  enabled: true
+
+visits-service:
+  enabled: true
+
+chat-agent:
+  enabled: true
+

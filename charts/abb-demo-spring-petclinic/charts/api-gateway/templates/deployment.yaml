@@ -1,1 +1,46 @@
-# deployment.yaml for api-gateway
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: {{ include "api-gateway.fullname" . }}
+  namespace: {{ .Values.global.namespace }}
+  labels:
+    {{ include "api-gateway.labels" . | nindent 4 }}
+spec:
+  replicas: {{ .Values.replicaCount }}
+  selector:
+    matchLabels:
+      {{ include "api-gateway.labels" . | nindent 6 }}
+  template:
+    metadata:
+      labels:
+        {{ include "api-gateway.labels" . | nindent 8 }}
+    spec:
+      serviceAccountName: {{ include "api-gateway.fullname" . }}-sa
+      volumes:
+        - name: secrets-store
+          csi:
+            driver: secrets-store.csi.k8s.io
+            readOnly: true
+            volumeAttributes:
+              secretProviderClass: {{ include "api-gateway.fullname" . }}-akv
+      containers:
+        - name: api-gateway
+          image: "{{ .Values.image.repository }}:{{ .Values.image.tag }}"
+          imagePullPolicy: Always
+          ports:
+            - containerPort: {{ .Values.containerPort }}
+          env:
+            - name: SPRING_DATASOURCE_USERNAME
+              valueFrom:
+                secretKeyRef:
+                  name: {{ .Values.global.azureKeyVault.secrets.username }}
+                  key: {{ .Values.global.azureKeyVault.secrets.username }}
+            - name: SPRING_DATASOURCE_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: {{ .Values.global.azureKeyVault.secrets.password }}
+                  key: {{ .Values.global.azureKeyVault.secrets.password }}
+          volumeMounts:
+            - name: secrets-store
+              mountPath: /mnt/secrets-store
+              readOnly: true

@@ -1,3 +1,38 @@
-name: abb-demo-spring-petclinic
-version: 0.1.0
 apiVersion: v2
+name: abb-demo-spring-petclinic
+description: Umbrella Helm chart for Spring Petclinic Microservices with AKS Workload Identity, Azure Key Vault CSI, and HPA.
+type: application
+version: 0.1.0
+appVersion: "1.0"
+
+dependencies:
+  - name: config-server
+    version: 0.1.0
+    repository: "file://./charts/config-server"
+    condition: config-server.enabled
+
+  - name: api-gateway
+    version: 0.1.0
+    repository: "file://./charts/api-gateway"
+    condition: api-gateway.enabled
+
+  - name: customers-service
+    version: 0.1.0
+    repository: "file://./charts/customers-service"
+    condition: customers-service.enabled
+
+  - name: vets-service
+    version: 0.1.0
+    repository: "file://./charts/vets-service"
+    condition: vets-service.enabled
+
+  - name: visits-service
+    version: 0.1.0
+    repository: "file://./charts/visits-service"
+    condition: visits-service.enabled
+
+  - name: chat-agent
+    version: 0.1.0
+    repository: "file://./charts/chat-agent"
+    condition: chat-agent.enabled
+
