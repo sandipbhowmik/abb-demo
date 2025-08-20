@@ -1,4 +1,12 @@
 replicaCount: 2
+
 image:
-  repository: abbdemoazdevacr.azurecr.io/demo-petclinic-app/config-server
-  tag: latest
+  repository: "{{ .Values.global.acr }}/{{ .Values.global.imageNamespace }}/config-server"
+  tag: "{{ .Values.global.imageTag }}"
+
+service:
+  type: LoadBalancer
+  port: 80
+  targetPort: 8888
+
+containerPort: 8888
