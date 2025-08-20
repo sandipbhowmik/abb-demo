@@ -3,7 +3,7 @@ This README explains how to deploy the application to **Azure Kubernetes Service
 - **Scaling**: resources, Horizontal Pod Autoscaler (HPA), PodDisruptionBudget (PDB).
 - **Secret management**: **Azure Key Vault** via **Secrets Store CSI Driver** + **Azure Workload Identity**.
 
-> Each service (e.g., `api-gateway`, `customers-service`) as a separate Helm _release_ with its own values file.
+> Each service (e.g., `api-gateway`, `customers-service`) as a separate Helm with its own values file. The helm charts are deployed here - `charts/abb-demo-spring-petclinic`
 
 ---
 
