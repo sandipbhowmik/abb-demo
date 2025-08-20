@@ -29,7 +29,7 @@ kubectl create namespace abb-demo-spring-petclinic --dry-run=client -o yaml | ku
 
 ## 2) Helm Chart Layout
 
-- The "Umbrella Chart" structure is followed here using a single umbrella Helm chart (sometimes called a parent or aggregator chart) with sub-charts for each microservice. Its preferred in enterprises for:
+- The **Umbrella Chart** structure is followed here using a single umbrella Helm chart (sometimes called a parent or aggregator chart) with sub-charts for each microservice. Its preferred in enterprises for:
   - One chart controls the deployment of the entire application stack
   - Versions of services can be locked together
   - Each microservice still has its own Helm chart, but production promotes them through the umbrella
