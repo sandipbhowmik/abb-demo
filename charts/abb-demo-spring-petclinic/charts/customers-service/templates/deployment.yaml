@@ -1,1 +1,46 @@
-# deployment.yaml for customers-service
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: {{ include "customers-service.fullname" . }}
+  namespace: {{ .Values.global.namespace }}
+  labels:
+    {{ include "customers-service.labels" . | nindent 4 }}
+spec:
+  replicas: {{ .Values.replicaCount }}
+  selector:
+    matchLabels:
+      {{ include "customers-service.labels" . | nindent 6 }}
+  template:
+    metadata:
+      labels:
+        {{ include "customers-service.labels" . | nindent 8 }}
+    spec:
+      serviceAccountName: {{ include "customers-service.fullname" . }}-sa
+      volumes:
+        - name: secrets-store
+          csi:
+            driver: secrets-store.csi.k8s.io
+            readOnly: true
+            volumeAttributes:
+              secretProviderClass: {{ include "customers-service.fullname" . }}-akv
+      containers:
+        - name: customers-service
+          image: "{{ .Values.image.repository }}:{{ .Values.image.tag }}"
+          imagePullPolicy: Always
+          ports:
+            - containerPort: {{ .Values.containerPort }}
+          env:
+            - name: SPRING_DATASOURCE_USERNAME
+              valueFrom:
+                secretKeyRef:
+                  name: {{ .Values.global.azureKeyVault.secrets.username }}
+                  key: {{ .Values.global.azureKeyVault.secrets.username }}
+            - name: SPRING_DATASOURCE_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: {{ .Values.global.azureKeyVault.secrets.password }}
+                  key: {{ .Values.global.azureKeyVault.secrets.password }}
+          volumeMounts:
+            - name: secrets-store
+              mountPath: /mnt/secrets-store
+              readOnly: true

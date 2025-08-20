@@ -1,4 +1,12 @@
 replicaCount: 2
+
 image:
-  repository: abbdemoazdevacr.azurecr.io/demo-petclinic-app/vets-service
-  tag: latest
+  repository: "{{ .Values.global.acr }}/{{ .Values.global.imageNamespace }}/vets-service"
+  tag: "{{ .Values.global.imageTag }}"
+
+service:
+  type: LoadBalancer
+  port: 80
+  targetPort: 8080
+
+containerPort: 8080
