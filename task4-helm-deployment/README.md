@@ -29,6 +29,11 @@ kubectl create namespace abb-demo-spring-petclinic --dry-run=client -o yaml | ku
 
 ## 2) Helm Chart Layout
 
+- The "Umbrella Chart" structure is followed here using a single umbrella Helm chart (sometimes called a parent or aggregator chart) with sub-charts for each microservice. Its preferred in enterprises for:
+  - One chart controls the deployment of the entire application stack
+  - Versions of services can be locked together
+  - Each microservice still has its own Helm chart, but production promotes them through the umbrella
+
 ```kotlin
 abb-demo-spring-petclinic/
 ├── Chart.yaml
@@ -104,101 +109,40 @@ abb-demo-spring-petclinic/
 
 2) Prepare a values file (e.g., `values-customers.yaml`):
 ```yaml
-nameOverride: customers-service
-namespace: apps
+global:
+  acr: abbdemoazdevacr.azurecr.io        
+  imageNamespace: demo-petclinic-app     
+  imageTag: latest                       
+  namespace: abb-demo-spring-petclinic
 
-image:
-  repository: abbdemoazdevacr.azurecr.io/demo-petclinic-app/customers-service
-  tag: "sha-<git-sha>"
-  pullPolicy: IfNotPresent
+  workloadIdentity:
+    clientId: <UAMI_CLIENT_ID>           
+    tenantId: <TENANT_ID>               
+    uamiName: abb-demo-az-dev-wi
 
-serviceAccount:
-  create: true
-  name: petclinic-sa
-  annotations:
-    azure.workload.identity/use: "true"
-    azure.workload.identity/client-id: "<UAMI-CLIENT-ID>"
+  azureKeyVault:
+    name: abbdemoazdevkv
+    secrets:
+      username: mysql-admin-login
+      password: mysql-admin-password
 
-resources:
-  requests: { cpu: "200m", memory: "256Mi" }
-  limits:   { cpu: "500m", memory: "512Mi" }
+  mysql:
+    hostname: <mysql-flexible-host>
+    port: 3306
+    database: petclinic
 
-autoscaling:
+hpa:
   enabled: true
   minReplicas: 2
-  maxReplicas: 8
+  maxReplicas: 5
   targetCPUUtilizationPercentage: 70
-
-pdb:
-  enabled: true
-  minAvailable: 1
-
-vpa:
-  enabled: false
-
-secrets:
-  mode: "akv"
-  akv:
-    vaultName: "<your-kv-name>"
-    tenantId: "<your-tenant-id>"
-    objects:
-      - name: "db-username"   # how it will be exposed inside the mount path
-        objectName: "petclinic-db-username"   # actual KV secret name
-        type: "secret"
-      - name: "db-password"
-        objectName: "petclinic-db-password"
-        type: "secret"
-    mountPath: "/mnt/secrets-store"
-    syncKubernetesSecrets: true
-    secretObjects:
-      - secretName: "petclinic-db"
-        type: Opaque
-        data:
-          - key: DB_USERNAME
-            objectName: db-username
-          - key: DB_PASSWORD
-            objectName: db-password
-
-env:
-  # Option A: Use synced Kubernetes Secret
-  - name: DB_USERNAME
-    valueFrom:
-      secretKeyRef: { name: petclinic-db, key: DB_USERNAME }
-  - name: DB_PASSWORD
-    valueFrom:
-      secretKeyRef: { name: petclinic-db, key: DB_PASSWORD }
-
-  # Option B: Read from mounted files (if not syncing to K8s Secret)
-  # - name: DB_PASSWORD_FILE
-  #   value: "/mnt/secrets-store/db-password"
-
-service:
-  type: ClusterIP
-  port: 8081
-
-container:
-  port: 8081
-  livenessProbe:
-    httpGet: { path: /actuator/health/liveness, port: 8081 }
-    initialDelaySeconds: 20
-    periodSeconds: 10
-  readinessProbe:
-    httpGet: { path: /actuator/health/readiness, port: 8081 }
-    initialDelaySeconds: 10
-    periodSeconds: 5
-```
-
-3) Install:
-```bash
-helm upgrade --install customers charts/microservice \
-  -n apps -f values-customers.yaml
 ```
 
 ---
 ## 4) Scaling Configurations
 
 ### 4.1 Resource Requests & Limits
-- Always set `resources.requests` and `resources.limits` for CPU/Memory.
+- Set `resources.requests` and `resources.limits` for CPU/Memory.
 - HPA uses metrics from requests/usage; without requests, autoscaling is ineffective.
 
 ### 4.2 Horizontal Pod Autoscaler (HPA)
