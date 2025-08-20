@@ -20,9 +20,9 @@ This document explains how to deploy the Petclinic application to **Azure Kubern
   - A Federated Identity Credential that binds `system:serviceaccount:apps:petclinic-sa` to the UAMI.
 - Helm 3.12+ and kubectl 1.27+ on your workstation.
 
-Namespace creation for the deployment:
+Namespace creation for the deployment (if not already created):
 ```bash
-kubectl create namespace apps --dry-run=client -o yaml | kubectl apply -f -
+kubectl create namespace abb-demo-spring-petclinic --dry-run=client -o yaml | kubectl apply -f -
 ```
 
 ---
