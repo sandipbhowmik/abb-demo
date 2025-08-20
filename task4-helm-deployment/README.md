@@ -27,18 +27,73 @@ kubectl create namespace abb-demo-spring-petclinic --dry-run=client -o yaml | ku
 
 ---
 
-## 2) Standard Chart Layout
-```
-charts/microservice/
-  Chart.yaml
-  values.yaml                  # defaults
-  templates/
-    deployment.yaml
-    service.yaml
-    hpa.yaml
-    pdb.yaml
-    serviceaccount.yaml
-    csi-secretproviderclass.yaml  # used when secrets.mode = "akv"
+## 2) Helm Chart Layout
+
+```kotlin
+abb-demo-spring-petclinic/
+├── Chart.yaml
+├── values.yaml                    <-- global/shared values (AKV, UAMI, registry, HPA defaults, etc.)
+└── charts/
+    ├── api-gateway/
+    │   ├── Chart.yaml
+    │   ├── values.yaml
+    │   └── templates/
+    │       ├── serviceaccount.yaml
+    │       ├── deployment.yaml
+    │       ├── hpa.yaml
+    │       ├── service.yaml
+    │       └── secretproviderclass.yaml
+    │
+    ├── config-server/
+    │   ├── Chart.yaml
+    │   ├── values.yaml
+    │   └── templates/
+    │       ├── serviceaccount.yaml
+    │       ├── deployment.yaml
+    │       ├── hpa.yaml
+    │       ├── service.yaml
+    │       └── secretproviderclass.yaml
+    │
+    ├── customers-service/
+    │   ├── Chart.yaml
+    │   ├── values.yaml
+    │   └── templates/
+    │       ├── serviceaccount.yaml
+    │       ├── deployment.yaml
+    │       ├── hpa.yaml
+    │       ├── service.yaml
+    │       └── secretproviderclass.yaml
+    │
+    ├── vets-service/
+    │   ├── Chart.yaml
+    │   ├── values.yaml
+    │   └── templates/
+    │       ├── serviceaccount.yaml
+    │       ├── deployment.yaml
+    │       ├── hpa.yaml
+    │       ├── service.yaml
+    │       └── secretproviderclass.yaml
+    │
+    ├── visits-service/
+    │   ├── Chart.yaml
+    │   ├── values.yaml
+    │   └── templates/
+    │       ├── serviceaccount.yaml
+    │       ├── deployment.yaml
+    │       ├── hpa.yaml
+    │       ├── service.yaml
+    │       └── secretproviderclass.yaml
+    │
+    └── chat-agent/
+        ├── Chart.yaml
+        ├── values.yaml
+        └── templates/
+            ├── serviceaccount.yaml
+            ├── deployment.yaml
+            ├── hpa.yaml
+            ├── service.yaml
+            └── secretproviderclass.yaml
+
 ```
 
 ---
