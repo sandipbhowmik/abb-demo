@@ -1,5 +1,5 @@
 # Deploying PetClinic to AKS with Helm
-This README explains how to deploy the application to **Azure Kubernetes Service (AKS)** using a **Helm chart** that includes:
+This document explains how to deploy the Petclinic application to **Azure Kubernetes Service (AKS)** using a **Helm chart** that includes:
 - **Scaling**: resources, Horizontal Pod Autoscaler (HPA), PodDisruptionBudget (PDB).
 - **Secret management**: **Azure Key Vault** via **Secrets Store CSI Driver** + **Azure Workload Identity**.
 
