@@ -139,87 +139,33 @@ hpa:
 ```
 
 ---
+
+
 ## 4) Scaling Configurations
 
-### 4.1 Resource Requests & Limits
-- Set `resources.requests` and `resources.limits` for CPU/Memory.
-- HPA uses metrics from requests/usage; without requests, autoscaling is ineffective.
+- Autoscaling enabled using `HorizontalPodAutoscaler` (apiVersion `autoscaling/v2`)
+- Global HPA configuration:
+  - `minReplicas: 2`
+  - `maxReplicas: 5`
+  - `targetCPUUtilizationPercentage: 70`
+- ArgoCD/Helm renders a per-microservice HPA using the global values.
+> Pods scale up/down automatically based on CPU utilization metrics.
 
-### 4.2 Horizontal Pod Autoscaler (HPA)
-Values:
-```yaml
-autoscaling:
-  enabled: true
-  minReplicas: 2
-  maxReplicas: 8
-  targetCPUUtilizationPercentage: 70
-  targetMemoryUtilizationPercentage: 80
-```
-Notes:
-- Requires **Metrics Server**.
-- Use both CPU and Memory targets where meaningful.
-- Start with conservative min/max; observe and iterate.
 
 ---
 
-## 5) Azure Key Vault via CSI + Workload Identity
 
-- No long-lived credentials inside cluster; pods authenticate via **Workload Identity** using SA → OIDC → UAMI.
-- Two consumption options:
-  1) **Mounted files** under `mountPath` (ephemeral, not persisted to etcd). Prefer mounted files for highest secrecy as it not stored in etcd.
-  2) **Sync to Kubernetes Secret** (`syncKubernetesSecrets: true`) to use `envFrom` or `secretKeyRef`. If syncing to K8s Secrets, scope RBAC and avoid `env` echoing in logs.
-     
-- Example values:
-```yaml
-secrets:
-  mode: "akv"
-  akv:
-    vaultName: "<kv-name>"
-    tenantId: "<tenant-id>"
-    objects:
-      - name: db-password
-        objectName: petclinic-db-password
-        type: secret
-    mountPath: "/mnt/secrets-store"
-    syncKubernetesSecrets: true
-    secretObjects:
-      - secretName: petclinic-db
-        type: Opaque
-        data:
-          - key: DB_PASSWORD
-            objectName: db-password
-```
+## 5) Deployment of Application in AKS using GitOps with ArgoCD
+
+- All Helm charts are stored in Git under `charts/abb-demo-spring-petclinic`
+- An ArgoCD Application points to this path and automatically:
+  - Watches Git (`main/master`)
+  - Syncs changes to the AKS cluster
+  - Ensures state reconciliation, rollbacks and self-heal.
+
 
 ---
 
-## 7) Upgrades, Rollbacks & Health
-
-- Upgrade with new image tags or values:
-```bash
-helm upgrade --install api-gateway charts/microservice \
-  -n apps -f values-api-gateway.yaml
-```
-- Check rollout:
-```bash
-kubectl -n apps rollout status deploy/api-gateway
-kubectl -n apps get hpa,pdb,po,svc
-```
-- Rollback:
-```bash
-helm -n apps history api-gateway
-helm -n apps rollback api-gateway <REVISION>
-```
-
----
-
-## 8) Troubleshooting
-
-- **HPA not scaling**: verify Metrics Server, resources.requests set, and load present.
-- **ImagePullBackOff**: check ACR permissions (AcrPull) and repo name/tag.
-- **Secrets (AKV) not mounted**: confirm SA annotations, UAMI client ID, KV access, CSI driver logs.
-- **CrashLoopBackOff**: check readiness/liveness probes and env configuration.
-
----
 
 ## 10) Change Log
 - v1.0 — Initial README for Helm → AKS deployment with scaling & secret management.
